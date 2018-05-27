@@ -208,12 +208,12 @@ public:
 
   auto operator[](size_type pos) -> T&
   {
-    assert(pos < size);
+    assert(pos < size());
     return _base[pos];
   }
   auto operator[](size_type pos) const -> T const&
   {
-    assert(pos < size);
+    assert(pos < size());
     return _base[pos];
   }
 
