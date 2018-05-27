@@ -314,7 +314,7 @@ private:
   template<typename InputIter>
   auto insert(const_iterator pos, InputIter first, InputIter last, std::forward_iterator_tag) -> iterator
   {
-    return range_insert_impl(pos, static_cast<size_type>(std::distance(first, last)), [](T* d_first, T* d_last) { std::copy(first, last, d_first); });
+    return range_insert_impl(pos, static_cast<size_type>(std::distance(first, last)), [&](T* d_first, T* d_last) { std::copy(first, last, d_first); });
   }
 
   template<typename F>
@@ -328,7 +328,7 @@ private:
       {
         uninitialized_move(_end - count, _end, _end);
         auto const rest = _end - p - count;
-        std::move_backwards(p, p + rest, _end - rest);
+        std::move_backward(p, p + rest, _end - rest);
       }
       fill(p, p + count);
       _end += count;
@@ -339,7 +339,7 @@ private:
 public:
   auto insert(const_iterator pos, std::initializer_list<T> ilist) -> iterator
   {
-    return range_insert_impl(pos, ilist.size(), [](T* d_first, T* d_last) { std::copy(ilist.begin(), ilist.end(), d_first); });
+    return range_insert_impl(pos, ilist.size(), [&](T* d_first, T* d_last) { std::copy(ilist.begin(), ilist.end(), d_first); });
   }
   template<typename... Args>
   auto emplace(const_iterator pos, Args&&... args) ->
@@ -350,7 +350,7 @@ public:
     if(p != _end)
     {
       uninitialized_move(_end - 1, _end, _end);
-      std::move_backwards(p, _end - 1, p + 1);
+      std::move_backward(p, _end - 1, p + 1);
       destroy_at(p);
     }
     auto* x = construct_at(p, std::forward<Args>(args)...);
@@ -439,7 +439,7 @@ public:
   }
   friend auto operator<(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
-    return std::lexicogaphical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
   }
   friend auto operator>(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool { return rhs < lhs; }
   friend auto operator<=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool { return !(rhs < lhs); }
@@ -458,7 +458,7 @@ private:
   }
 
   static auto to_iterator(const_iterator it) noexcept -> iterator { return iterator(to_pointer(it)); }
-  static auto to_pointer(const_iterator it) noexcept -> iterator { return _base + (it - cbegin()); }
+  static auto to_pointer(const_iterator it) noexcept -> iterator { return it->data() + (it - it->cbegin()); }
 
   T* _base = nullptr; // The starting address of the reserved address space
   T* _end = nullptr; // The past-the-end address of the last value
