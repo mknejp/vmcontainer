@@ -224,7 +224,7 @@ public:
   auto back() const -> T const& { return (*this)[size() - 1]; }
 
   auto data() noexcept -> T* { return _base; }
-  auto data() const noexcept -> T const* { return _data; }
+  auto data() const noexcept -> T const* { return _base; }
 
   // Iterators
 
