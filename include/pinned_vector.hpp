@@ -457,8 +457,8 @@ private:
     }
   }
 
-  static auto to_iterator(const_iterator it) noexcept -> iterator { return iterator(to_pointer(it)); }
-  static auto to_pointer(const_iterator it) noexcept -> iterator { return it->data() + (it - it->cbegin()); }
+  auto to_iterator(const_iterator it) noexcept -> iterator { return iterator(to_pointer(it)); }
+  auto to_pointer(const_iterator it) noexcept -> iterator { return _base + (it - cbegin()); }
 
   T* _base = nullptr; // The starting address of the reserved address space
   T* _end = nullptr; // The past-the-end address of the last value
