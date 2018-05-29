@@ -6,8 +6,9 @@ add_library(
     pinned_vector
     src/pinned_vector.cpp
     include/pinned_vector.hpp)
-    
+
 target_include_directories(pinned_vector PUBLIC include)
+target_compile_features(pinned_vector PUBLIC cxx_std_11)
 
 include(CTest)
 option(PINNED_VECTOR_TESTS "Build pinned_vector tests" off)
