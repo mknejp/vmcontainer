@@ -470,7 +470,7 @@ template<typename T>
 class mknejp::pinned_vector : public detail::_pinned_vector::pinned_vector_impl<T, detail::_pinned_vector::virtual_allocator>
 {
 public:
-  using pinned_vector_impl::pinned_vector_impl;
+  using detail::_pinned_vector::pinned_vector_impl<T, detail::_pinned_vector::virtual_allocator>::pinned_vector_impl;
 };
 
 // Non-member functions
