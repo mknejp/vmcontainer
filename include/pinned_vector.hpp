@@ -66,8 +66,7 @@ struct mknejp::detail::_pinned_vector::virtual_allocator
 
 constexpr auto mknejp::detail::_pinned_vector::pad_to_page_size(std::size_t num_bytes, std::size_t page_size) noexcept -> std::size_t
 {
-  auto const num_pages = (num_bytes + page_size - 1) / page_size;
-  return num_pages * page_size;
+  return ((num_bytes + page_size - 1) / page_size) * page_size;
 }
 
 template<typename T>
