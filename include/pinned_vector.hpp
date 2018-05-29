@@ -70,7 +70,7 @@ constexpr auto mknejp::detail::_pinned_vector::pad_to_page_size(std::size_t num_
 }
 
 template<typename T>
-T* mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last, T* d_last)
+auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last, T* d_last) -> T*
 {
   assert(first < last);
   while(first != last)
@@ -418,7 +418,7 @@ public:
       shrink_to_fit();
     }
   }
-  void swap(pinned_vector_impl& other) noexcept
+  auto swap(pinned_vector_impl& other) noexcept -> void
   {
     std::swap(_base, other._base);
     std::swap(_end, other._end);
