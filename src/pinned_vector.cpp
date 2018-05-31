@@ -18,7 +18,7 @@
 #include <stdexcept>
 #include <system_error>
 
-auto mknejp::detail::_pinned_vector::virtual_allocator::reserve(std::size_t num_bytes) -> void*
+auto mknejp::detail::_pinned_vector::virtual_memory_allocator::reserve(std::size_t num_bytes) -> void*
 {
   assert(num_bytes > 0);
 
@@ -33,14 +33,14 @@ auto mknejp::detail::_pinned_vector::virtual_allocator::reserve(std::size_t num_
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_allocator::free(void* offset) -> void
+auto mknejp::detail::_pinned_vector::virtual_memory_allocator::free(void* offset) -> void
 {
 #ifdef WIN32
   assert(::VirtualFree(offset, 0, MEM_RELEASE) != 0);
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_allocator::commit(void* offset, std::size_t num_bytes) -> void
+auto mknejp::detail::_pinned_vector::virtual_memory_allocator::commit(void* offset, std::size_t num_bytes) -> void
 {
   assert(num_bytes > 0);
 
@@ -53,14 +53,14 @@ auto mknejp::detail::_pinned_vector::virtual_allocator::commit(void* offset, std
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_allocator::decommit(void* offset, std::size_t num_bytes) -> void
+auto mknejp::detail::_pinned_vector::virtual_memory_allocator::decommit(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
   assert(::VirtualFree(offset, 0, MEM_DECOMMIT) != 0);
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_allocator::page_size() noexcept -> std::size_t
+auto mknejp::detail::_pinned_vector::virtual_memory_allocator::page_size() noexcept -> std::size_t
 {
 #ifdef WIN32
   static auto const size = [] {
