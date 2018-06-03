@@ -111,13 +111,13 @@ public:
   auto resize(std::size_t new_size) -> void
   {
     assert(new_size <= reserved());
-    if(new_size < comitted())
+    if(new_size < committed())
     {
-      decomit(comitted() - new_size);
+      decomit(committed() - new_size);
     }
-    else if(new_size > comitted())
+    else if(new_size > committed())
     {
-      commit(new_size - comitted());
+      commit(new_size - committed());
     }
   }
 
