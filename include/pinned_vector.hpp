@@ -508,32 +508,32 @@ public:
     std::swap(_end, other._end);
   }
 
-  template<typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+  template<typename U = T, typename = decltype(std::declval<U const&>() == std::declval<U const&>())>
   friend auto operator==(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
     return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
   }
-  template<typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+  template<typename U = T, typename = decltype(std::declval<U const&>() == std::declval<U const&>())>
   friend auto operator!=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
     return !(lhs == rhs);
   }
-  template<typename = decltype(std::declval<T const&>() < std::declval<T const&>())>
+  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
   friend auto operator<(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
     return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
   }
-  template<typename = decltype(std::declval<T const&>() < std::declval<T const&>())>
+  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
   friend auto operator>(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
     return rhs < lhs;
   }
-  template<typename = decltype(std::declval<T const&>() < std::declval<T const&>())>
+  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
   friend auto operator<=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
     return !(rhs < lhs);
   }
-  template<typename = decltype(std::declval<T const&>() < std::declval<T const&>())>
+  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
   friend auto operator>=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
   {
     return !(lhs < rhs);
