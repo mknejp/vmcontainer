@@ -551,8 +551,8 @@ private:
     }
   }
 
-  auto is_valid_iterator(const_iterator it) const noexcept { return to_pointer(it) >= data() && to_pointer(it) < _end; }
-  auto is_valid_last_iterator(const_iterator it) const noexcept { return to_pointer(it) >= data() && to_pointer(it) <= _end; }
+  auto is_valid_iterator(const_iterator it) const noexcept -> bool { return to_pointer(it) >= data() && to_pointer(it) < _end; }
+  auto is_valid_last_iterator(const_iterator it) const noexcept -> bool { return to_pointer(it) >= data() && to_pointer(it) <= _end; }
 
   auto to_iterator(const_iterator it) noexcept -> iterator { return iterator(to_pointer(it)); }
   auto to_pointer(const_iterator it) noexcept -> iterator { return _base + (it - cbegin()); }
