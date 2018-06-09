@@ -162,7 +162,7 @@ auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last,
   assert(first < last);
   while(first != last)
   {
-    new(static_cast<void*>(--d_last)) T(std::move(*--last));
+    construct_at(--d_last) T(std::move(*--last));
   }
   return d_last;
 }
@@ -170,7 +170,7 @@ auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last,
 template<typename T, typename... Args>
 auto mknejp::detail::_pinned_vector::construct_at(T* p, Args&&... args) -> T*
 {
-  return new(static_cast<void*>(p)) T(std::forward<Args>(args)...);
+  return ::new(static_cast<void*>(p)) T(std::forward<Args>(args)...);
 }
 
 template<typename T>
@@ -193,7 +193,7 @@ auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std
 {
   for(std::size_t i = 0; i < count; ++first, (void)++i)
   {
-    new(static_cast<void*>(std::addressof(*first))) typename std::iterator_traits<ForwardIter>::value_type(value);
+    construct_at(std::addressof(*first)) typename std::iterator_traits<ForwardIter>::value_type(value);
   }
   return first;
 }
@@ -203,7 +203,7 @@ auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIt
 {
   for(; first != last; ++first, (void)++d_first)
   {
-    new(static_cast<void*>(std::addressof(*d_first))) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
+    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
   }
   return d_first;
 }
@@ -213,7 +213,7 @@ auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::
 {
   for(std::size_t i = 0; i < count; ++first, (void)++d_first)
   {
-    new(static_cast<void*>(std::addressof(*d_first))) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
+    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
   }
   return d_first;
 }
