@@ -20,9 +20,6 @@ namespace mknejp
 
   class virtual_memory_page_stack;
 
-  template<typename T>
-  auto swap(pinned_vector<T>& lhs, pinned_vector<T>& rhs) noexcept -> void;
-
   namespace detail
   {
     namespace _pinned_vector
@@ -568,12 +565,6 @@ class mknejp::pinned_vector
 public:
   using detail::_pinned_vector::pinned_vector_impl<T, detail::_pinned_vector::virtual_memory_page_stack<detail::_pinned_vector::virtual_memory_allocator>>::
     pinned_vector_impl;
+
+  friend void swap(pinned_vector& lhs, pinned_vector& rhs) noexcept { lhs.swap(rhs); }
 };
-
-// Non-member functions
-
-template<typename T>
-auto mknejp::swap(pinned_vector<T>& lhs, pinned_vector<T>& rhs) noexcept -> void
-{
-  lhs.swap(rhs);
-}
