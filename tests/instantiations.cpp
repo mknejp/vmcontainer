@@ -56,8 +56,8 @@ static void required_functions()
   // member functions which are always required otherwise the container is pointless
   a.clear();
 
-  using std::swap;
-  swap(a, b);
+  // swap
+  swap(a, b); // ADL
   a.swap(b);
 
   static_assert(std::is_same<decltype(a.begin()), typename pinned_vector<T>::iterator>::value, "");
