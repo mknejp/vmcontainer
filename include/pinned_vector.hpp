@@ -56,6 +56,10 @@ namespace mknejp
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// virtual_memory_page_stack
+//
+
 template<typename VirtualMemoryAllocator>
 class mknejp::detail::_pinned_vector::virtual_memory_page_stack
 {
@@ -141,6 +145,10 @@ private:
   std::size_t _page_size = VirtualMemoryAllocator::page_size(); // Size in bytes of one page
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// virtual_memory_allocator
+//
+
 struct mknejp::detail::_pinned_vector::virtual_memory_allocator
 {
   static auto reserve(std::size_t num_bytes) -> void*;
@@ -150,6 +158,10 @@ struct mknejp::detail::_pinned_vector::virtual_memory_allocator
 
   static auto page_size() noexcept -> std::size_t;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// algorithms
+//
 
 constexpr auto mknejp::detail::_pinned_vector::round_up(std::size_t num_bytes, std::size_t page_size) noexcept -> std::size_t
 {
@@ -227,6 +239,10 @@ auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIt
   }
   return first;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// pinned_vector_impl
+//
 
 template<typename T, typename VirtualMemoryPageStack>
 class mknejp::detail::_pinned_vector::pinned_vector_impl
@@ -557,6 +573,10 @@ private:
   VirtualMemoryPageStack _storage;
   T* _end = data();
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// pinned_vector
+//
 
 template<typename T>
 class mknejp::pinned_vector
