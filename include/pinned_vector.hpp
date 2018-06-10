@@ -163,7 +163,8 @@ struct mknejp::detail::_pinned_vector::virtual_memory_allocator
 // algorithms
 //
 
-constexpr auto mknejp::detail::_pinned_vector::round_up(std::size_t num_bytes, std::size_t page_size) noexcept -> std::size_t
+constexpr auto mknejp::detail::_pinned_vector::round_up(std::size_t num_bytes, std::size_t page_size) noexcept
+  -> std::size_t
 {
   return ((num_bytes + page_size - 1) / page_size) * page_size;
 }
@@ -201,7 +202,8 @@ auto mknejp::detail::_pinned_vector::destroy(ForwardIter first, ForwardIter last
 }
 
 template<typename ForwardIter, typename T>
-auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std::size_t count, T const& value) -> ForwardIter
+auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std::size_t count, T const& value)
+  -> ForwardIter
 {
   for(std::size_t i = 0; i < count; ++first, (void)++i)
   {
@@ -211,7 +213,8 @@ auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std
 }
 
 template<typename InputIter, typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIter last, ForwardIter d_first) -> ForwardIter
+auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIter last, ForwardIter d_first)
+  -> ForwardIter
 {
   for(; first != last; ++first, (void)++d_first)
   {
@@ -221,7 +224,8 @@ auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIt
 }
 
 template<typename InputIter, typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::size_t count, ForwardIter d_first) -> ForwardIter
+auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::size_t count, ForwardIter d_first)
+  -> ForwardIter
 {
   for(std::size_t i = 0; i < count; ++first, (void)++d_first)
   {
@@ -231,7 +235,8 @@ auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::
 }
 
 template<typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIter first, std::size_t count) -> ForwardIter
+auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIter first, std::size_t count)
+  -> ForwardIter
 {
   for(std::size_t i = 0; i < count; ++i, (void)++first)
   {
@@ -268,7 +273,10 @@ public:
   explicit pinned_vector_impl(size_type max_size) : _storage(max_size) {}
 
   pinned_vector_impl(pinned_vector_impl const&) = delete;
-  pinned_vector_impl(pinned_vector_impl&& other) noexcept : _storage(std::move(other._storage)) { other._end = other.data(); }
+  pinned_vector_impl(pinned_vector_impl&& other) noexcept : _storage(std::move(other._storage))
+  {
+    other._end = other.data();
+  }
   auto operator=(pinned_vector_impl const&) -> pinned_vector_impl& = delete;
   auto operator=(pinned_vector_impl&& other) noexcept -> pinned_vector_impl&
   {
@@ -367,12 +375,14 @@ public:
     destroy(begin(), end());
     _end = data();
   }
-  auto insert(const_iterator pos, T const& value) -> typename std::enable_if<std::is_copy_constructible<T&>::value, iterator>::type
+  auto insert(const_iterator pos, T const& value) ->
+    typename std::enable_if<std::is_copy_constructible<T&>::value, iterator>::type
   {
     return iterator(std::addressof(emplace(pos, value)));
   }
   template<typename U = T>
-  auto insert(const_iterator pos, T&& value) -> typename std::enable_if<std::is_move_constructible<U>::value, iterator>::type
+  auto insert(const_iterator pos, T&& value) ->
+    typename std::enable_if<std::is_move_constructible<U>::value, iterator>::type
   {
     return iterator(std::addressof(emplace(pos, std::move(value))));
   }
@@ -382,8 +392,9 @@ public:
   }
 
   template<typename InputIter>
-  auto insert(const_iterator pos, InputIter first, InputIter last) ->
-    typename std::enable_if<std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIter>::iterator_category>::value, iterator>::type
+  auto insert(const_iterator pos, InputIter first, InputIter last) -> typename std::enable_if<
+    std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIter>::iterator_category>::value,
+    iterator>::type
   {
     return insert(pos, first, last, typename std::iterator_traits<InputIter>::iterator_category());
   }
@@ -402,7 +413,9 @@ private:
   template<typename InputIter>
   auto insert(const_iterator pos, InputIter first, InputIter last, std::forward_iterator_tag) -> iterator
   {
-    return range_insert_impl(pos, static_cast<size_type>(std::distance(first, last)), [&](T* d_first, T* d_last) { std::copy(first, last, d_first); });
+    return range_insert_impl(pos, static_cast<size_type>(std::distance(first, last)), [&](T* d_first, T* d_last) {
+      std::copy(first, last, d_first);
+    });
   }
 
   template<typename F>
@@ -427,11 +440,14 @@ private:
 public:
   auto insert(const_iterator pos, std::initializer_list<T> ilist) -> iterator
   {
-    return range_insert_impl(pos, ilist.size(), [&](T* d_first, T* d_last) { std::copy(ilist.begin(), ilist.end(), d_first); });
+    return range_insert_impl(
+      pos, ilist.size(), [&](T* d_first, T* d_last) { std::copy(ilist.begin(), ilist.end(), d_first); });
   }
   template<typename... Args>
   auto emplace(const_iterator pos, Args&&... args) ->
-    typename std::enable_if<std::is_constructible<T, Args&&...>::value && std::is_move_constructible<T>::value && std::is_move_assignable<T>::value, T&>::type
+    typename std::enable_if<std::is_constructible<T, Args&&...>::value && std::is_move_constructible<T>::value
+                              && std::is_move_assignable<T>::value,
+                            T&>::type
   {
     grow_if_necessary(1);
     auto* p = to_pointer(pos);
@@ -564,8 +580,14 @@ private:
     }
   }
 
-  auto is_valid_iterator(const_iterator it) const noexcept -> bool { return to_pointer(it) >= data() && to_pointer(it) < _end; }
-  auto is_valid_last_iterator(const_iterator it) const noexcept -> bool { return to_pointer(it) >= data() && to_pointer(it) <= _end; }
+  auto is_valid_iterator(const_iterator it) const noexcept -> bool
+  {
+    return to_pointer(it) >= data() && to_pointer(it) < _end;
+  }
+  auto is_valid_last_iterator(const_iterator it) const noexcept -> bool
+  {
+    return to_pointer(it) >= data() && to_pointer(it) <= _end;
+  }
 
   auto to_iterator(const_iterator it) noexcept -> iterator { return iterator(to_pointer(it)); }
   auto to_pointer(const_iterator it) noexcept -> iterator { return data() + (it - cbegin()); }
