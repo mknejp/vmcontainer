@@ -245,6 +245,11 @@ private:
   std::size_t _page_size = VirtualMemoryAllocator::page_size(); // Size in bytes of one page
 };
 
+class mknejp::virtual_memory_page_stack : detail::_pinned_vector::virtual_memory_page_stack<>
+{
+  using detail::_pinned_vector::virtual_memory_page_stack<>::virtual_memory_page_stack;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // pinned_vector_impl
 //
