@@ -54,6 +54,8 @@ namespace mknejp
       template<typename ForwardIt, typename T>
       auto uninitialized_fill_n(ForwardIt first, std::size_t count, T const& value) -> ForwardIt;
       template<typename InputIt, typename ForwardIt>
+      auto uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt;
+      template<typename InputIt, typename ForwardIt>
       auto uninitialized_move(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt;
       template<typename InputIt, typename ForwardIt>
       auto uninitialized_move_n(InputIt first, std::size_t count, ForwardIt d_first) -> std::pair<InputIt, ForwardIt>;
@@ -87,7 +89,7 @@ auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last,
   assert(first < last);
   while(first != last)
   {
-    construct_at(--d_last) T(std::move(*--last));
+    construct_at(std::addressof(*--d_last), std::move(*--last));
   }
   return d_last;
 }
@@ -235,15 +237,15 @@ public:
   explicit virtual_memory_reservation(std::size_t num_bytes)
   {
     assert(num_bytes > 0);
-    _reserved = num_bytes;
-    _base = VirtualMemoryAllocator::reserve(_reserved);
+    _reserved_bytes = num_bytes;
+    _base = VirtualMemoryAllocator::reserve(_reserved_bytes);
   }
   virtual_memory_reservation(virtual_memory_reservation const& other)
-    : _base(VirtualMemoryAllocator::reserve(_reserved)), _reserved(other.reserved())
+    : _base(VirtualMemoryAllocator::reserve(other.reserved_bytes())), _reserved_bytes(other.reserved_bytes())
   {
   }
   virtual_memory_reservation(virtual_memory_reservation&& other) noexcept
-    : _base(exchange(other._base, nullptr)), _reserved(exchange(other._reserved, 0))
+    : _base(exchange(other._base, nullptr)), _reserved_bytes(exchange(other._reserved_bytes, 0))
   {
   }
   auto operator=(virtual_memory_reservation const& other) & -> virtual_memory_reservation&
@@ -267,15 +269,15 @@ public:
   friend void swap(virtual_memory_reservation& lhs, virtual_memory_reservation& rhs) noexcept
   {
     std::swap(lhs._base, rhs._base);
-    std::swap(lhs._reserved, rhs._reserved);
+    std::swap(lhs._reserved_bytes, rhs._reserved_bytes);
   }
 
   auto base() const noexcept -> void* { return _base; }
-  auto reserved_bytes() const noexcept -> std::size_t { return _reserved; }
+  auto reserved_bytes() const noexcept -> std::size_t { return _reserved_bytes; }
 
 private:
   void* _base = nullptr; // The starting address of the reserved address space
-  std::size_t _reserved = 0; // Total size of reserved address space in bytes
+  std::size_t _reserved_bytes = 0; // Total size of reserved address space in bytes
 };
 
 class mknejp::virtual_memory_reservation : detail::_pinned_vector::virtual_memory_reservation<>
@@ -292,10 +294,10 @@ class mknejp::detail::_pinned_vector::virtual_memory_page_stack
 {
 public:
   explicit virtual_memory_page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
-  virtual_memory_page_stack(virtual_memory_page_stack const&)
-    : _reserved(other.reserved_bytes()), _commmitted(other.committed_bytes()), _page_size(other.page_size())
+  virtual_memory_page_stack(virtual_memory_page_stack const& other)
+    : _reservation(other._reservation), _committed_bytes(other.committed_bytes()), _page_size(other.page_size())
   {
-    VirtualMemoryAllocator::commit(_base, committed_bytes());
+    VirtualMemoryAllocator::commit(base(), committed_bytes());
   }
   virtual_memory_page_stack(virtual_memory_page_stack&& other) noexcept
     : _reservation(std::move(other._reservation))
@@ -342,7 +344,7 @@ public:
     assert(new_size <= reserved_bytes());
     if(new_size < committed_bytes())
     {
-      decomit(committed() - new_size);
+      decomit(committed_bytes() - new_size);
     }
     else if(new_size > committed_bytes())
     {
@@ -402,13 +404,16 @@ public:
   pinned_vector_impl() = default;
   explicit pinned_vector_impl(size_type max_size) : _storage(max_size) {}
 
-  pinned_vector_impl(pinned_vector_impl const&) = delete;
-  pinned_vector_impl(pinned_vector_impl&& other) noexcept : _storage(std::move(other._storage))
+  pinned_vector_impl(pinned_vector_impl const& other)
+    : _storage(other._storage), _end(uninitialized_copy(other.cbegin(), other.cend(), data()))
   {
-    other._end = other.data();
   }
-  auto operator=(pinned_vector_impl const&) -> pinned_vector_impl& = delete;
-  auto operator=(pinned_vector_impl&& other) noexcept -> pinned_vector_impl&
+  pinned_vector_impl(pinned_vector_impl&& other) noexcept
+    : _storage(std::move(other._storage)), _end(exchange(other._end, nullptr))
+  {
+  }
+  auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl& { return *this = pinned_vector_impl(other); }
+  auto operator=(pinned_vector_impl&& other) & noexcept -> pinned_vector_impl&
   {
     auto temp = std::move(*this);
     swap(other);

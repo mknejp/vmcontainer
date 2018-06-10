@@ -16,9 +16,9 @@ namespace
   {
   public:
     regular() = default;
-    regular(regular const&) = delete;
+    regular(regular const&) = default;
     regular(regular&&) = default;
-    auto operator=(regular const&) -> regular& = delete;
+    auto operator=(regular const&) -> regular& = default;
     auto operator=(regular &&) -> regular& = default;
   };
 
@@ -112,6 +112,18 @@ static void required_functions()
   static_assert(std::is_same<decltype(c.data()), T const*>::value, "");
 }
 
+template<typename T>
+static void required_for_copyable()
+{
+  pinned_vector<T> a(typename pinned_vector<T>::size_type(100));
+  // copy ctor
+  auto b = a;
+  // copy assign
+  a = b;
+}
+
 template void required_functions<regular>();
 template void required_functions<movable_only>();
 template void required_functions<immovable>();
+
+template void required_for_copyable<regular>();
