@@ -57,6 +57,106 @@ namespace mknejp
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// algorithms
+//
+
+constexpr auto mknejp::detail::_pinned_vector::round_up(std::size_t num_bytes, std::size_t page_size) noexcept
+  -> std::size_t
+{
+  return ((num_bytes + page_size - 1) / page_size) * page_size;
+}
+
+template<typename T>
+auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last, T* d_last) -> T*
+{
+  assert(first < last);
+  while(first != last)
+  {
+    construct_at(--d_last) T(std::move(*--last));
+  }
+  return d_last;
+}
+
+template<typename T, typename... Args>
+auto mknejp::detail::_pinned_vector::construct_at(T* p, Args&&... args) -> T*
+{
+  return ::new(static_cast<void*>(p)) T(std::forward<Args>(args)...);
+}
+
+template<typename T>
+auto mknejp::detail::_pinned_vector::destroy_at(T* p) -> void
+{
+  p->~T();
+}
+
+template<typename ForwardIter>
+auto mknejp::detail::_pinned_vector::destroy(ForwardIter first, ForwardIter last) -> void
+{
+  for(; first != last; ++first)
+  {
+    destroy_at(std::addressof(*first));
+  }
+}
+
+template<typename ForwardIter, typename T>
+auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std::size_t count, T const& value)
+  -> ForwardIter
+{
+  for(std::size_t i = 0; i < count; ++first, (void)++i)
+  {
+    construct_at(std::addressof(*first)) typename std::iterator_traits<ForwardIter>::value_type(value);
+  }
+  return first;
+}
+
+template<typename InputIter, typename ForwardIter>
+auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIter last, ForwardIter d_first)
+  -> ForwardIter
+{
+  for(; first != last; ++first, (void)++d_first)
+  {
+    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
+  }
+  return d_first;
+}
+
+template<typename InputIter, typename ForwardIter>
+auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::size_t count, ForwardIter d_first)
+  -> ForwardIter
+{
+  for(std::size_t i = 0; i < count; ++first, (void)++d_first)
+  {
+    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
+  }
+  return d_first;
+}
+
+template<typename ForwardIter>
+auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIter first, std::size_t count)
+  -> ForwardIter
+{
+  for(std::size_t i = 0; i < count; ++i, (void)++first)
+  {
+    construct_at(std::addressof(*first));
+  }
+  return first;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// virtual_memory_allocator
+//
+
+struct mknejp::detail::_pinned_vector::virtual_memory_allocator
+{
+  static auto reserve(std::size_t num_bytes) -> void*;
+  static auto free(void* offset) -> void;
+  static auto commit(void* offset, std::size_t num_bytes) -> void;
+  static auto decommit(void* offset, std::size_t num_bytes) -> void;
+
+  static auto page_size() noexcept -> std::size_t;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // virtual_memory_page_stack
 //
 
@@ -144,106 +244,6 @@ private:
   std::size_t _reserved = 0; // Total size of reserved address space in bytes
   std::size_t _page_size = VirtualMemoryAllocator::page_size(); // Size in bytes of one page
 };
-
-///////////////////////////////////////////////////////////////////////////////
-// virtual_memory_allocator
-//
-
-struct mknejp::detail::_pinned_vector::virtual_memory_allocator
-{
-  static auto reserve(std::size_t num_bytes) -> void*;
-  static auto free(void* offset) -> void;
-  static auto commit(void* offset, std::size_t num_bytes) -> void;
-  static auto decommit(void* offset, std::size_t num_bytes) -> void;
-
-  static auto page_size() noexcept -> std::size_t;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// algorithms
-//
-
-constexpr auto mknejp::detail::_pinned_vector::round_up(std::size_t num_bytes, std::size_t page_size) noexcept
-  -> std::size_t
-{
-  return ((num_bytes + page_size - 1) / page_size) * page_size;
-}
-
-template<typename T>
-auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last, T* d_last) -> T*
-{
-  assert(first < last);
-  while(first != last)
-  {
-    construct_at(--d_last) T(std::move(*--last));
-  }
-  return d_last;
-}
-
-template<typename T, typename... Args>
-auto mknejp::detail::_pinned_vector::construct_at(T* p, Args&&... args) -> T*
-{
-  return ::new(static_cast<void*>(p)) T(std::forward<Args>(args)...);
-}
-
-template<typename T>
-auto mknejp::detail::_pinned_vector::destroy_at(T* p) -> void
-{
-  p->~T();
-}
-
-template<typename ForwardIter>
-auto mknejp::detail::_pinned_vector::destroy(ForwardIter first, ForwardIter last) -> void
-{
-  for(; first != last; ++first)
-  {
-    destroy_at(std::addressof(*first));
-  }
-}
-
-template<typename ForwardIter, typename T>
-auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std::size_t count, T const& value)
-  -> ForwardIter
-{
-  for(std::size_t i = 0; i < count; ++first, (void)++i)
-  {
-    construct_at(std::addressof(*first)) typename std::iterator_traits<ForwardIter>::value_type(value);
-  }
-  return first;
-}
-
-template<typename InputIter, typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIter last, ForwardIter d_first)
-  -> ForwardIter
-{
-  for(; first != last; ++first, (void)++d_first)
-  {
-    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
-  }
-  return d_first;
-}
-
-template<typename InputIter, typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::size_t count, ForwardIter d_first)
-  -> ForwardIter
-{
-  for(std::size_t i = 0; i < count; ++first, (void)++d_first)
-  {
-    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
-  }
-  return d_first;
-}
-
-template<typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIter first, std::size_t count)
-  -> ForwardIter
-{
-  for(std::size_t i = 0; i < count; ++i, (void)++first)
-  {
-    construct_at(std::addressof(*first));
-  }
-  return first;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // pinned_vector_impl
