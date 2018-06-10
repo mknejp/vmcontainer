@@ -39,9 +39,6 @@ namespace mknejp
 
       constexpr auto round_up(std::size_t num_bytes, std::size_t page_size) noexcept -> std::size_t;
 
-      // Same as std::move_backwards but does construction instead of assignment
-      template<typename T>
-      T* move_construct_backwards(T* first, T* last, T* d_last);
       template<typename T, typename... Args>
       auto construct_at(T* p, Args&&... args) -> T*;
       // C++17 algorithms
@@ -81,17 +78,6 @@ auto mknejp::detail::_pinned_vector::exchange(T& obj, U&& new_value) -> T
   auto old = std::move(obj);
   obj = std::forward<U>(new_value);
   return old;
-}
-
-template<typename T>
-auto mknejp::detail::_pinned_vector::move_construct_backwards(T* first, T* last, T* d_last) -> T*
-{
-  assert(first < last);
-  while(first != last)
-  {
-    construct_at(std::addressof(*--d_last), std::move(*--last));
-  }
-  return d_last;
 }
 
 template<typename T, typename... Args>
