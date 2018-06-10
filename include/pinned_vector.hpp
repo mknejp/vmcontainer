@@ -18,6 +18,8 @@ namespace mknejp
   template<typename T>
   class pinned_vector;
 
+  class virtual_memory_reservation;
+
   class virtual_memory_page_stack;
 
   namespace detail
@@ -25,6 +27,9 @@ namespace mknejp
     namespace _pinned_vector
     {
       struct virtual_memory_allocator;
+
+      template<typename VirtualMemoryAllocator = virtual_memory_allocator>
+      class virtual_memory_reservation;
 
       template<typename VirtualMemoryAllocator = virtual_memory_allocator>
       class virtual_memory_page_stack;
@@ -40,6 +45,8 @@ namespace mknejp
       template<typename T, typename... Args>
       auto construct_at(T* p, Args&&... args) -> T*;
       // C++17 algorithms
+      template<class T, class U = T>
+      auto exchange(T& obj, U&& new_value) -> T;
       template<typename T>
       auto destroy_at(T* p) -> void;
       template<typename ForwardIter>
@@ -64,6 +71,14 @@ constexpr auto mknejp::detail::_pinned_vector::round_up(std::size_t num_bytes, s
   -> std::size_t
 {
   return ((num_bytes + page_size - 1) / page_size) * page_size;
+}
+
+template<class T, class U>
+auto mknejp::detail::_pinned_vector::exchange(T& obj, U&& new_value) -> T
+{
+  auto old = std::move(obj);
+  obj = std::forward<U>(new_value);
+  return old;
 }
 
 template<typename T>
@@ -157,6 +172,65 @@ struct mknejp::detail::_pinned_vector::virtual_memory_allocator
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// virtual_memory_reservation
+//
+
+template<typename VirtualMemoryAllocator>
+class mknejp::detail::_pinned_vector::virtual_memory_reservation
+{
+public:
+  explicit virtual_memory_reservation(std::size_t num_bytes)
+  {
+    assert(num_bytes > 0);
+    _reserved = num_bytes;
+    _base = VirtualMemoryAllocator::reserve(_reserved);
+  }
+  virtual_memory_reservation(virtual_memory_reservation const& other)
+    : _base(VirtualMemoryAllocator::reserve(_reserved)), _reserved(other.reserved())
+  {
+  }
+  virtual_memory_reservation(virtual_memory_reservation&& other) noexcept
+    : _base(exchange(other._base, nullptr)), _reserved(exchange(other._reserved, 0))
+  {
+  }
+  auto operator=(virtual_memory_reservation const& other) & -> virtual_memory_reservation&
+  {
+    return *this = virtual_memory_reservation(other.reserved());
+  }
+  auto operator=(virtual_memory_reservation&& other) & noexcept -> virtual_memory_reservation&
+  {
+    auto temp = std::move(*this);
+    swap(temp, *this);
+    return *this;
+  }
+  ~virtual_memory_reservation()
+  {
+    if(_base)
+    {
+      VirtualMemoryAllocator::free(_base);
+    }
+  }
+
+  friend void swap(virtual_memory_reservation& lhs, virtual_memory_reservation& rhs) noexcept
+  {
+    std::swap(lhs._base, rhs._base);
+    std::swap(lhs._reserved, rhs._reserved);
+  }
+
+  auto base() const noexcept -> void* { return _base; }
+  auto reserved_bytes() const noexcept -> std::size_t { return _reserved; }
+
+private:
+  void* _base = nullptr; // The starting address of the reserved address space
+  std::size_t _reserved = 0; // Total size of reserved address space in bytes
+};
+
+class mknejp::virtual_memory_reservation : detail::_pinned_vector::virtual_memory_reservation<>
+{
+  using detail::_pinned_vector::virtual_memory_reservation<>::virtual_memory_reservation;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // virtual_memory_page_stack
 //
 
@@ -164,37 +238,38 @@ template<typename VirtualMemoryAllocator>
 class mknejp::detail::_pinned_vector::virtual_memory_page_stack
 {
 public:
-  explicit virtual_memory_page_stack(std::size_t max_size)
+  explicit virtual_memory_page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
+  virtual_memory_page_stack(virtual_memory_page_stack const&)
+    : _reserved(other.reserved_bytes()), _commmitted(other.committed_bytes()), _page_size(other.page_size())
   {
-    assert(max_size > 0);
-    _reserved = detail::_pinned_vector::round_up(max_size, page_size());
-    _base = VirtualMemoryAllocator::reserve(_reserved);
+    VirtualMemoryAllocator::commit(_base, committed_bytes());
   }
-  virtual_memory_page_stack(virtual_memory_page_stack const&) = delete;
-  virtual_memory_page_stack(virtual_memory_page_stack&& other) noexcept { swap(other); }
-  auto operator=(virtual_memory_page_stack const&) -> virtual_memory_page_stack& = delete;
-  auto operator=(virtual_memory_page_stack&& other) noexcept -> virtual_memory_page_stack&
+  virtual_memory_page_stack(virtual_memory_page_stack&& other) noexcept
+    : _reservation(std::move(other._reservation))
+    , _committed_bytes(exchange(other._committed_bytes, 0))
+    , _page_size(exchange(other._page_size, 0))
+  {
+  }
+  auto operator=(virtual_memory_page_stack const& other) & -> virtual_memory_page_stack&
+  {
+    return *this = virtual_memory_page_stack(other);
+  }
+  auto operator=(virtual_memory_page_stack&& other) & noexcept -> virtual_memory_page_stack&
   {
     auto temp = std::move(*this);
     swap(*this, other);
     return *this;
   }
-  ~virtual_memory_page_stack()
-  {
-    if(_reserved > 0)
-    {
-      VirtualMemoryAllocator::free(_base);
-    }
-  }
+  ~virtual_memory_page_stack() = default;
 
   auto commit(std::size_t bytes) -> void
   {
     if(bytes > 0)
     {
-      auto const new_committed = round_up(committed() + bytes, page_size());
-      assert(new_committed <= reserved());
-      VirtualMemoryAllocator::commit(static_cast<char*>(base()) + committed(), new_committed - committed());
-      _committed = new_committed;
+      auto const new_committed = round_up(committed_bytes() + bytes, page_size());
+      assert(new_committed <= reserved_bytes());
+      VirtualMemoryAllocator::commit(static_cast<char*>(base()) + committed_bytes(), new_committed - committed_bytes());
+      _committed_bytes = new_committed;
     }
   }
 
@@ -202,47 +277,44 @@ public:
   {
     if(bytes > 0)
     {
-      assert(bytes <= committed());
-      auto const new_committed = round_up(committed() - bytes, page_size());
-      VirtualMemoryAllocator::decommit(static_cast<char*>(base()) + new_committed, committed() - new_committed);
-      _committed = new_committed;
+      assert(bytes <= committed_bytes());
+      auto const new_committed = round_up(committed_bytes() - bytes, page_size());
+      VirtualMemoryAllocator::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
+      _committed_bytes = new_committed;
     }
   }
 
   auto resize(std::size_t new_size) -> void
   {
-    assert(new_size <= reserved());
-    if(new_size < committed())
+    assert(new_size <= reserved_bytes());
+    if(new_size < committed_bytes())
     {
       decomit(committed() - new_size);
     }
-    else if(new_size > committed())
+    else if(new_size > committed_bytes())
     {
-      commit(new_size - committed());
+      commit(new_size - committed_bytes());
     }
   }
 
-  auto base() const noexcept -> void* { return _base; }
-  auto committed() const noexcept -> std::size_t { return _committed; }
-  auto reserved() const noexcept -> std::size_t { return _reserved; }
+  auto base() const noexcept -> void* { return _reservation.base(); }
+  auto committed_bytes() const noexcept -> std::size_t { return _committed_bytes; }
+  auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
   auto page_size() const noexcept -> std::size_t { return _page_size; }
 
-  void swap(virtual_memory_page_stack& other) noexcept
+  friend void swap(virtual_memory_page_stack& lhs, virtual_memory_page_stack& rhs) noexcept
   {
-    std::swap(_base, other._base);
-    std::swap(_committed, other._committed);
-    std::swap(_reserved, other._reserved);
-    std::swap(_page_size, other._page_size);
+    using std::swap;
+    swap(lhs._reservation, rhs._reservation);
+    swap(lhs._committed_bytes, rhs._committed_bytes);
+    swap(lhs._page_size, rhs._page_size);
   }
 
-  friend void swap(virtual_memory_page_stack& lhs, virtual_memory_page_stack& rhs) noexcept { lhs.swap(rhs); }
-
 private:
-private:
-  void* _base = nullptr; // The starting address of the reserved address space
-  std::size_t _committed = 0; // Total size of committed bytes
-  std::size_t _reserved = 0; // Total size of reserved address space in bytes
-  std::size_t _page_size = VirtualMemoryAllocator::page_size(); // Size in bytes of one page
+  using Reservation = mknejp::detail::_pinned_vector::virtual_memory_reservation<VirtualMemoryAllocator>;
+  Reservation _reservation;
+  std::size_t _committed_bytes = 0;
+  std::size_t _page_size = VirtualMemoryAllocator::page_size();
 };
 
 class mknejp::virtual_memory_page_stack : detail::_pinned_vector::virtual_memory_page_stack<>
@@ -354,16 +426,16 @@ public:
 
   auto empty() const noexcept -> bool { return begin() == end(); }
   auto size() const noexcept -> size_type { return static_cast<size_type>(_end - data()); }
-  auto max_size() const noexcept -> size_type { return _storage.reserved() / sizeof(T); }
+  auto max_size() const noexcept -> size_type { return _storage.reserved_bytes() / sizeof(T); }
   auto reserve(size_type new_cap) -> void
   {
     assert(new_cap < max_size());
     if(new_cap > capacity())
     {
-      _storage.commit(new_cap * sizeof(T) - _storage.committed());
+      _storage.commit(new_cap * sizeof(T) - _storage.committed_bytes());
     }
   }
-  auto capacity() const noexcept -> size_type { return _storage.committed() / sizeof(T); }
+  auto capacity() const noexcept -> size_type { return _storage.committed_bytes() / sizeof(T); }
   auto shrink_to_fit() -> void
   {
     if(capacity() > size())
@@ -538,8 +610,9 @@ public:
   }
   auto swap(pinned_vector_impl& other) noexcept -> void
   {
-    _storage.swap(other._storage);
-    std::swap(_end, other._end);
+    using std::swap;
+    swap(_storage, other._storage);
+    swap(_end, other._end);
   }
 
   template<typename U = T, typename = decltype(std::declval<U const&>() == std::declval<U const&>())>
