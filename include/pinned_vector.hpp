@@ -24,13 +24,13 @@ namespace mknejp
   {
     namespace _pinned_vector
     {
-      template<typename T, typename VirtualMemoryPageStack>
-      class pinned_vector_impl;
+      struct virtual_memory_allocator;
 
-      template<typename VirtualMemoryAllocator>
+      template<typename VirtualMemoryAllocator = virtual_memory_allocator>
       class virtual_memory_page_stack;
 
-      struct virtual_memory_allocator;
+      template<typename T, typename VirtualMemoryPageStack = virtual_memory_page_stack<>>
+      class pinned_vector_impl;
 
       constexpr auto round_up(std::size_t num_bytes, std::size_t page_size) noexcept -> std::size_t;
 
@@ -601,12 +601,10 @@ private:
 //
 
 template<typename T>
-class mknejp::pinned_vector
-  : public detail::_pinned_vector::pinned_vector_impl<T, detail::_pinned_vector::virtual_memory_page_stack<detail::_pinned_vector::virtual_memory_allocator>>
+class mknejp::pinned_vector : public detail::_pinned_vector::pinned_vector_impl<T>
 {
 public:
-  using detail::_pinned_vector::pinned_vector_impl<T, detail::_pinned_vector::virtual_memory_page_stack<detail::_pinned_vector::virtual_memory_allocator>>::
-    pinned_vector_impl;
+  using detail::_pinned_vector::pinned_vector_impl<T>::pinned_vector_impl;
 
   friend void swap(pinned_vector& lhs, pinned_vector& rhs) noexcept { lhs.swap(rhs); }
 };
