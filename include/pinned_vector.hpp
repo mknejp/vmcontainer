@@ -49,16 +49,16 @@ namespace mknejp
       auto exchange(T& obj, U&& new_value) -> T;
       template<typename T>
       auto destroy_at(T* p) -> void;
-      template<typename ForwardIter>
-      auto destroy(ForwardIter first, ForwardIter last) -> void;
-      template<typename ForwardIter, typename T>
-      auto uninitialized_fill_n(ForwardIter first, std::size_t count, T const& value) -> ForwardIter;
-      template<typename InputIter, typename ForwardIter>
-      auto uninitialized_move(InputIter first, InputIter last, ForwardIter d_first) -> ForwardIter;
-      template<typename InputIter, typename ForwardIter>
-      auto uninitialized_move_n(InputIter first, std::size_t count, ForwardIter d_first) -> ForwardIter;
-      template<typename ForwardIter>
-      auto uninitialized_default_construct_n(ForwardIter first, std::size_t count) -> ForwardIter;
+      template<typename ForwardIt>
+      auto destroy(ForwardIt first, ForwardIt last) -> void;
+      template<typename ForwardIt, typename T>
+      auto uninitialized_fill_n(ForwardIt first, std::size_t count, T const& value) -> ForwardIt;
+      template<typename InputIt, typename ForwardIt>
+      auto uninitialized_move(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt;
+      template<typename InputIt, typename ForwardIt>
+      auto uninitialized_move_n(InputIt first, std::size_t count, ForwardIt d_first) -> std::pair<InputIt, ForwardIt>;
+      template<typename ForwardIt>
+      auto uninitialized_default_construct_n(ForwardIt first, std::size_t count) -> ForwardIt;
     }
   }
 }
@@ -104,8 +104,8 @@ auto mknejp::detail::_pinned_vector::destroy_at(T* p) -> void
   p->~T();
 }
 
-template<typename ForwardIter>
-auto mknejp::detail::_pinned_vector::destroy(ForwardIter first, ForwardIter last) -> void
+template<typename ForwardIt>
+auto mknejp::detail::_pinned_vector::destroy(ForwardIt first, ForwardIt last) -> void
 {
   for(; first != last; ++first)
   {
@@ -113,48 +113,101 @@ auto mknejp::detail::_pinned_vector::destroy(ForwardIter first, ForwardIter last
   }
 }
 
-template<typename ForwardIter, typename T>
-auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIter first, std::size_t count, T const& value)
-  -> ForwardIter
+template<typename ForwardIt, typename T>
+auto mknejp::detail::_pinned_vector::uninitialized_fill_n(ForwardIt first, std::size_t count, T const& value)
+  -> ForwardIt
 {
-  for(std::size_t i = 0; i < count; ++first, (void)++i)
+  auto current = first;
+  try
   {
-    construct_at(std::addressof(*first)) typename std::iterator_traits<ForwardIter>::value_type(value);
+    for(std::size_t i = 0; i < count; ++current, (void)++i)
+    {
+      construct_at(std::addressof(*current), value);
+    }
   }
-  return first;
+  catch(...)
+  {
+    destroy(first, current);
+    throw;
+  }
+  return current;
 }
 
-template<typename InputIter, typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_move(InputIter first, InputIter last, ForwardIter d_first)
-  -> ForwardIter
+template<typename InputIt, typename ForwardIt>
+auto mknejp::detail::_pinned_vector::uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt
 {
-  for(; first != last; ++first, (void)++d_first)
+  auto current = d_first;
+  try
   {
-    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
+    for(; first != last; ++first, (void)++current)
+    {
+      construct_at(std::addressof(*current), *first);
+    }
   }
-  return d_first;
+  catch(...)
+  {
+    destroy(d_first, current);
+    throw;
+  }
+  return current;
 }
 
-template<typename InputIter, typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIter first, std::size_t count, ForwardIter d_first)
-  -> ForwardIter
+template<typename InputIt, typename ForwardIt>
+auto mknejp::detail::_pinned_vector::uninitialized_move(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt
 {
-  for(std::size_t i = 0; i < count; ++first, (void)++d_first)
+  auto current = d_first;
+  try
   {
-    construct_at(std::addressof(*d_first)) typename std::iterator_traits<ForwardIter>::value_type(std::move(*first));
+    for(; first != last; ++first, (void)++current)
+    {
+      construct_at(std::addressof(*current), std::move(*first));
+    }
   }
-  return d_first;
+  catch(...)
+  {
+    destroy(d_first, current);
+    throw;
+  }
+  return current;
 }
 
-template<typename ForwardIter>
-auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIter first, std::size_t count)
-  -> ForwardIter
+template<typename InputIt, typename ForwardIt>
+auto mknejp::detail::_pinned_vector::uninitialized_move_n(InputIt first, std::size_t count, ForwardIt d_first)
+  -> std::pair<InputIt, ForwardIt>
 {
-  for(std::size_t i = 0; i < count; ++i, (void)++first)
+  auto current = d_first;
+  try
   {
-    construct_at(std::addressof(*first));
+    for(std::size_t i = 0; i < count; ++first, (void)++current)
+    {
+      construct_at(std::addressof(*current), std::move(*first));
+    }
   }
-  return first;
+  catch(...)
+  {
+    destroy(d_first, current);
+    throw;
+  }
+  return {first, current};
+}
+
+template<typename ForwardIt>
+auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIt first, std::size_t count) -> ForwardIt
+{
+  auto current = first;
+  try
+  {
+    for(std::size_t i = 0; i < count; ++i, (void)++current)
+    {
+      construct_at(std::addressof(*current));
+    }
+  }
+  catch(...)
+  {
+    destroy(first, current);
+    throw;
+  }
+  return current;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
