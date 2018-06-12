@@ -63,11 +63,8 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::decommit(void* of
 auto mknejp::detail::_pinned_vector::virtual_memory_allocator::page_size() noexcept -> std::size_t
 {
 #ifdef WIN32
-  static auto const size = [] {
-    auto info = SYSTEM_INFO{};
-    ::GetSystemInfo(&info);
-    return static_cast<std::size_t>(info.dwPageSize);
-  }();
-  return size;
+  auto info = SYSTEM_INFO{};
+  ::GetSystemInfo(&info);
+  return static_cast<std::size_t>(info.dwPageSize);
 #endif
 }

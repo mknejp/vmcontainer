@@ -4,13 +4,5 @@
 // (See accompanying file LICENSE.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "pinned_vector.hpp"
-
-using mknejp::pinned_vector;
-
-int main()
-{
-  auto v = pinned_vector<int>(1);
-  v.push_back(1);
-  return 0;
-}
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"

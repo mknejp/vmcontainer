@@ -236,12 +236,12 @@ public:
   }
   auto operator=(virtual_memory_reservation const& other) & -> virtual_memory_reservation&
   {
-    return *this = virtual_memory_reservation(other.reserved());
+    return *this = virtual_memory_reservation(other.reserved_bytes());
   }
   auto operator=(virtual_memory_reservation&& other) & noexcept -> virtual_memory_reservation&
   {
     auto temp = std::move(*this);
-    swap(temp, *this);
+    swap(*this, other);
     return *this;
   }
   ~virtual_memory_reservation()
