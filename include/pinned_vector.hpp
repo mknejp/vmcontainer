@@ -205,7 +205,7 @@ auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIt
 struct mknejp::detail::_pinned_vector::virtual_memory_allocator
 {
   static auto reserve(std::size_t num_bytes) -> void*;
-  static auto free(void* offset) -> void;
+  static auto free(void* offset, std::size_t num_bytes) -> void;
   static auto commit(void* offset, std::size_t num_bytes) -> void;
   static auto decommit(void* offset, std::size_t num_bytes) -> void;
 
@@ -248,7 +248,7 @@ public:
   {
     if(_base)
     {
-      VirtualMemoryAllocator::free(_base);
+      VirtualMemoryAllocator::free(base(), reserved_bytes());
     }
   }
 
