@@ -38,7 +38,6 @@
   },
   "cmake.configureArgs": [
     "-DCMAKE_CXX_EXTENSIONS=OFF",
-    "-DWITH_PINNED_VECTOR_TESTS=ON",
     "-DBUILD_TESTING=ON"
   ]
 }

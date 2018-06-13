@@ -11,7 +11,6 @@ target_include_directories(pinned_vector PUBLIC include)
 target_compile_features(pinned_vector PUBLIC cxx_std_11)
 
 include(CTest)
-option(WITH_PINNED_VECTOR_TESTS "Build pinned_vector tests" off)
-if(BUILD_TESTING AND WITH_PINNED_VECTOR_TESTS)
+if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
