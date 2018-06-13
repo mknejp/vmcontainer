@@ -10,6 +10,9 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#elif __APPLE__
+#include <sys/mman.h>
+#include <unistd.h>
 #else
 #error BOOO
 #endif
@@ -30,6 +33,13 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::reserve(std::size
     throw std::system_error(std::error_code(err, std::system_category()), "virtual memory reservation failed");
   }
   return offset;
+#elif __APPLE__
+  auto const offset = ::mmap(nullptr, num_bytes, PROT_NONE, MAP_ANON | MAP_PRIVATE, 0, 0);
+  if(offset == MAP_FAILED)
+  {
+    throw std::system_error(std::error_code(errno, std::system_category()), "virtual memory reservation failed");
+  }
+  return offset;
 #endif
 }
 
@@ -37,6 +47,8 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::free(void* offset
 {
 #ifdef WIN32
   assert(::VirtualFree(offset, num_bytes, MEM_RELEASE) != 0);
+#elif __APPLE__
+  assert(::munmap(offset, num_bytes) == 0);
 #endif
 }
 
@@ -50,6 +62,12 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::commit(void* offs
   {
     throw std::bad_alloc();
   }
+#elif __APPLE__
+  auto const result = ::mprotect(offset, num_bytes, PROT_READ | PROT_WRITE);
+  if(result != 0)
+  {
+    throw std::bad_alloc();
+  }
 #endif
 }
 
@@ -57,6 +75,8 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::decommit(void* of
 {
 #ifdef WIN32
   assert(::VirtualFree(offset, 0, MEM_DECOMMIT) != 0);
+#elif __APPLE__
+  assert(::madvise(offset, num_bytes, MADV_DONTNEED) != 0);
 #endif
 }
 
@@ -66,5 +86,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::page_size() noexc
   auto info = SYSTEM_INFO{};
   ::GetSystemInfo(&info);
   return static_cast<std::size_t>(info.dwPageSize);
+#elif __APPLE__
+  return static_cast<std::size_t>(::getpagesize());
 #endif
 }
