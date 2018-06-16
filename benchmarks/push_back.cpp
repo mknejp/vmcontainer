@@ -9,6 +9,7 @@
 #include <benchmark/benchmark.h>
 
 #include <algorithm>
+#include <chrono>
 #include <vector>
 
 using mknejp::pinned_vector;
@@ -33,32 +34,107 @@ namespace
   }
 }
 
+constexpr auto lower_bound = 1 << 10;
+constexpr auto upper_bound = 1 << 28;
+
+///////////////////////////////////////////////////////////////////////////////
+// push_back_basline
+//
+
+// Establish a test baseline by only doing push_back without any allocations
 template<typename Vector, typename T>
 static void push_back_baseline(benchmark::State& state, tag<Vector>, T x)
 {
-  auto max_size = static_cast<typename Vector::size_type>(state.range(0));
-  auto v = init_vector(max_size, tag<Vector>());
-  v.reserve(max_size);
   for(auto _ : state)
   {
+    auto max_size = static_cast<typename Vector::size_type>(state.range(0));
+    auto v = init_vector(max_size, tag<Vector>());
+    v.reserve(max_size);
+
+    // Do not count reserve + destructor
+    auto start = std::chrono::high_resolution_clock::now();
     std::fill_n(std::back_inserter(v), max_size, x);
-    v.clear();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
+    benchmark::DoNotOptimize(v.end());
   }
-  benchmark::DoNotOptimize(v.end());
 }
 
 // trivially copyable types
 BENCHMARK_CAPTURE(push_back_baseline, std::vector<int>, tag<std::vector<int>>(), 12345)
-  ->RangeMultiplier(2)
-  ->Range(1024, 2 << 14);
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
 BENCHMARK_CAPTURE(push_back_baseline, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)
-  ->RangeMultiplier(2)
-  ->Range(1024, 2 << 14);
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
 
 // std::string with small stirng optimization
 BENCHMARK_CAPTURE(push_back_baseline, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
-  ->RangeMultiplier(2)
-  ->Range(1024, 2 << 20);
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
 BENCHMARK_CAPTURE(push_back_baseline, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
-  ->RangeMultiplier(2)
-  ->Range(1024, 2 << 20);
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
+
+///////////////////////////////////////////////////////////////////////////////
+// push_back
+//
+
+template<typename Vector, typename T>
+static void push_back(benchmark::State& state, tag<Vector>, T x)
+{
+  for(auto _ : state)
+  {
+    auto max_size = static_cast<typename Vector::size_type>(state.range(0));
+    auto v = init_vector(max_size, tag<Vector>());
+
+    // Do not count destructor
+    auto start = std::chrono::high_resolution_clock::now();
+    std::fill_n(std::back_inserter(v), max_size, x);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
+    benchmark::DoNotOptimize(v.end());
+  }
+}
+
+// trivially copyable types
+BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
+BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
+
+// std::string with small stirng optimization
+BENCHMARK_CAPTURE(push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
+BENCHMARK_CAPTURE(push_back, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
+  ->Complexity()
+  ->Unit(benchmark::kMicrosecond)
+  ->UseManualTime()
+  // ->RangeMultiplier(2)
+  ->Range(lower_bound, upper_bound);
