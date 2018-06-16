@@ -473,7 +473,7 @@ public:
   auto max_size() const noexcept -> size_type { return _storage.reserved_bytes() / sizeof(T); }
   auto reserve(size_type new_cap) -> void
   {
-    assert(new_cap < max_size());
+    assert(new_cap <= max_size());
     if(new_cap > capacity())
     {
       _storage.commit(new_cap * sizeof(T) - _storage.committed_bytes());
