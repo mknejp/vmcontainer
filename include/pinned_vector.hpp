@@ -388,7 +388,7 @@ public:
 
   // Special members
   pinned_vector_impl() = default;
-  explicit pinned_vector_impl(size_type max_size) : _storage(max_size) {}
+  explicit pinned_vector_impl(size_type max_size) : _storage(max_size * sizeof(T)) {}
 
   pinned_vector_impl(pinned_vector_impl const& other)
     : _storage(other._storage), _end(uninitialized_copy(other.cbegin(), other.cend(), data()))
