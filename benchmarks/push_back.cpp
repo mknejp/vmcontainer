@@ -36,14 +36,15 @@ namespace
 template<typename Vector, typename T>
 static void push_back_baseline(benchmark::State& state, tag<Vector>, T x)
 {
+  auto max_size = static_cast<typename Vector::size_type>(state.range(0));
+  auto v = init_vector(max_size, tag<Vector>());
+  v.reserve(max_size);
   for(auto _ : state)
   {
-    auto max_size = static_cast<typename Vector::size_type>(state.range(0));
-    auto v = init_vector(max_size, tag<Vector>());
-    v.reserve(max_size);
-
-    benchmark::DoNotOptimize(std::fill_n(std::back_inserter(v), max_size, x));
+    std::fill_n(std::back_inserter(v), max_size, x);
+    v.clear();
   }
+  benchmark::DoNotOptimize(v.end());
 }
 
 // trivially copyable types
