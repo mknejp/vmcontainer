@@ -74,7 +74,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::decommit(void* of
 #ifdef WIN32
   assert(::VirtualFree(offset, 0, MEM_DECOMMIT) != 0);
 #else
-  assert(::madvise(offset, num_bytes, MADV_DONTNEED) != 0);
+  assert(::madvise(offset, num_bytes, MADV_DONTNEED) == 0);
   assert(::mprotect(offset, num_bytes, PROT_NONE) == 0);
 #endif
 }
