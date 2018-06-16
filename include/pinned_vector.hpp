@@ -704,7 +704,7 @@ private:
     auto const new_size = size() + n;
     if(new_size > capacity())
     {
-      reserve(std::max(capacity() * growth_factor, new_size));
+      reserve(std::max(std::min(capacity() * growth_factor, max_size()), new_size));
     }
   }
 
