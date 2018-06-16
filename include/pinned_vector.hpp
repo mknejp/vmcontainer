@@ -301,7 +301,13 @@ public:
     swap(*this, other);
     return *this;
   }
-  ~virtual_memory_page_stack() = default;
+  ~virtual_memory_page_stack()
+  {
+    if(base())
+    {
+      VirtualMemoryAllocator::decommit(base(), committed_bytes());
+    }
+  }
 
   auto commit(std::size_t bytes) -> void
   {
