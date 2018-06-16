@@ -395,7 +395,7 @@ public:
   {
   }
   pinned_vector_impl(pinned_vector_impl&& other) noexcept
-    : _storage(std::move(other._storage)), _end(exchange(other._end, nullptr))
+    : _storage(std::move(other._storage)), _end(_pinned_vector::exchange(other._end, nullptr))
   {
   }
   auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl& { return *this = pinned_vector_impl(other); }
