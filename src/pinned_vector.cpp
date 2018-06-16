@@ -44,7 +44,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::reserve(std::size
 auto mknejp::detail::_pinned_vector::virtual_memory_allocator::free(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
-  assert(::VirtualFree(offset, num_bytes, MEM_RELEASE) != 0);
+  assert(::VirtualFree(offset, 0, MEM_RELEASE) != 0);
 #else
   assert(::munmap(offset, num_bytes) == 0);
 #endif
