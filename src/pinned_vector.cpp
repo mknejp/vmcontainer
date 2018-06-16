@@ -44,9 +44,11 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::reserve(std::size
 auto mknejp::detail::_pinned_vector::virtual_memory_allocator::free(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
-  assert(::VirtualFree(offset, 0, MEM_RELEASE) != 0);
+  auto const result = ::VirtualFree(offset, 0, MEM_RELEASE);
+  assert(result != 0);
 #else
-  assert(::munmap(offset, num_bytes) == 0);
+  auto const result = ::munmap(offset, num_bytes);
+  assert(result == 0);
 #endif
 }
 
@@ -72,10 +74,13 @@ auto mknejp::detail::_pinned_vector::virtual_memory_allocator::commit(void* offs
 auto mknejp::detail::_pinned_vector::virtual_memory_allocator::decommit(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
-  assert(::VirtualFree(offset, 0, MEM_DECOMMIT) != 0);
+  auto const result = ::VirtualFree(offset, 0, MEM_DECOMMIT);
+  assert(result != 0);
 #else
-  assert(::madvise(offset, num_bytes, MADV_DONTNEED) == 0);
-  assert(::mprotect(offset, num_bytes, PROT_NONE) == 0);
+  auto const result1 = ::madvise(offset, num_bytes, MADV_DONTNEED);
+  assert(result1 == 0);
+  auto const result2 = ::mprotect(offset, num_bytes, PROT_NONE);
+  assert(result2 == 0);
 #endif
 }
 
