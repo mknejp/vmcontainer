@@ -63,9 +63,11 @@
     "xloctime": "cpp",
     "xtree": "cpp"
   },
-  "cmake.configureArgs": [
-    "-DCMAKE_CXX_STANDARD=11",
-    "-DCMAKE_CXX_EXTENSIONS=OFF",
-    "-DBUILD_TESTING=ON"
-  ]
+  "cSpell.enabled": false,
+  "cmake.configureSettings": {
+    "CMAKE_CXX_STANDARD": 11,
+    "CMAKE_CXX_EXTENSIONS": "OFF",
+    "BUILD_TESTING": "ON",
+    "WITH_PINNED_VECTOR_BENCHMARKS": "ON"
+  }
 }
