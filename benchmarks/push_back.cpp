@@ -38,7 +38,7 @@ static void push_back_baseline(benchmark::State& state, tag<Vector>, T x)
 {
   for(auto _ : state)
   {
-    auto max_size = static_cast<Vector::size_type>(state.range(0));
+    auto max_size = static_cast<typename Vector::size_type>(state.range(0));
     auto v = init_vector(max_size, tag<Vector>());
     v.reserve(max_size);
 
