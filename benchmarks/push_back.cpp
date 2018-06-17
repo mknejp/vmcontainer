@@ -32,10 +32,12 @@ namespace
   {
     return pinned_vector<T>(max_size);
   }
-}
 
-constexpr auto lower_bound = 1 << 10;
-constexpr auto upper_bound = 1 << 28;
+  auto configure_run(benchmark::internal::Benchmark* b) -> void
+  {
+    b->Unit(benchmark::kMicrosecond)->UseManualTime()->Range(1 << 10, 1 << 20);
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // push_back_basline
@@ -43,7 +45,7 @@ constexpr auto upper_bound = 1 << 28;
 
 // Establish a test baseline by only doing push_back without any allocations
 template<typename Vector, typename T>
-static void push_back_baseline(benchmark::State& state, tag<Vector>, T x)
+static void baseline_push_back(benchmark::State& state, tag<Vector>, T x)
 {
   for(auto _ : state)
   {
@@ -62,32 +64,14 @@ static void push_back_baseline(benchmark::State& state, tag<Vector>, T x)
 }
 
 // trivially copyable types
-BENCHMARK_CAPTURE(push_back_baseline, std::vector<int>, tag<std::vector<int>>(), 12345)
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
-BENCHMARK_CAPTURE(push_back_baseline, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
+BENCHMARK_CAPTURE(baseline_push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_run);
+BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_run);
 
 // std::string with small stirng optimization
-BENCHMARK_CAPTURE(push_back_baseline, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
-BENCHMARK_CAPTURE(push_back_baseline, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
+BENCHMARK_CAPTURE(baseline_push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
+  ->Apply(configure_run);
+BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
+  ->Apply(configure_run);
 
 ///////////////////////////////////////////////////////////////////////////////
 // push_back
@@ -112,29 +96,11 @@ static void push_back(benchmark::State& state, tag<Vector>, T x)
 }
 
 // trivially copyable types
-BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
-BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
+BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_run);
+BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_run);
 
 // std::string with small stirng optimization
 BENCHMARK_CAPTURE(push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
+  ->Apply(configure_run);
 BENCHMARK_CAPTURE(push_back, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
-  ->Complexity()
-  ->Unit(benchmark::kMicrosecond)
-  ->UseManualTime()
-  // ->RangeMultiplier(2)
-  ->Range(lower_bound, upper_bound);
+  ->Apply(configure_run);
