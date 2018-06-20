@@ -220,11 +220,14 @@ template<typename VirtualMemoryAllocator>
 class mknejp::detail::_pinned_vector::virtual_memory_reservation
 {
 public:
+  virtual_memory_reservation() = default;
   explicit virtual_memory_reservation(std::size_t num_bytes)
   {
-    assert(num_bytes > 0);
-    _reserved_bytes = num_bytes;
-    _base = VirtualMemoryAllocator::reserve(_reserved_bytes);
+    if(num_bytes > 0)
+    {
+      _reserved_bytes = num_bytes;
+      _base = VirtualMemoryAllocator::reserve(_reserved_bytes);
+    }
   }
   virtual_memory_reservation(virtual_memory_reservation const& other) = delete;
   virtual_memory_reservation(virtual_memory_reservation&& other) noexcept
@@ -273,6 +276,7 @@ template<typename VirtualMemoryAllocator>
 class mknejp::detail::_pinned_vector::virtual_memory_page_stack
 {
 public:
+  virtual_memory_page_stack() = default;
   explicit virtual_memory_page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
   virtual_memory_page_stack(virtual_memory_page_stack const& other) = delete;
   virtual_memory_page_stack(virtual_memory_page_stack&& other) noexcept
@@ -290,7 +294,7 @@ public:
   }
   ~virtual_memory_page_stack()
   {
-    if(base())
+    if(committed_bytes() > 0)
     {
       VirtualMemoryAllocator::decommit(base(), committed_bytes());
     }
