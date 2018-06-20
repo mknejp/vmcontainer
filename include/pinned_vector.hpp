@@ -226,18 +226,12 @@ public:
     _reserved_bytes = num_bytes;
     _base = VirtualMemoryAllocator::reserve(_reserved_bytes);
   }
-  virtual_memory_reservation(virtual_memory_reservation const& other)
-    : _base(VirtualMemoryAllocator::reserve(other.reserved_bytes())), _reserved_bytes(other.reserved_bytes())
-  {
-  }
+  virtual_memory_reservation(virtual_memory_reservation const& other) = delete;
   virtual_memory_reservation(virtual_memory_reservation&& other) noexcept
     : _base(exchange(other._base, nullptr)), _reserved_bytes(exchange(other._reserved_bytes, 0))
   {
   }
-  auto operator=(virtual_memory_reservation const& other) & -> virtual_memory_reservation&
-  {
-    return *this = virtual_memory_reservation(other.reserved_bytes());
-  }
+  auto operator=(virtual_memory_reservation const& other) = delete;
   auto operator=(virtual_memory_reservation&& other) & noexcept -> virtual_memory_reservation&
   {
     auto temp = std::move(*this);
@@ -280,21 +274,14 @@ class mknejp::detail::_pinned_vector::virtual_memory_page_stack
 {
 public:
   explicit virtual_memory_page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
-  virtual_memory_page_stack(virtual_memory_page_stack const& other)
-    : _reservation(other._reservation), _committed_bytes(other.committed_bytes()), _page_size(other.page_size())
-  {
-    VirtualMemoryAllocator::commit(base(), committed_bytes());
-  }
+  virtual_memory_page_stack(virtual_memory_page_stack const& other) = delete;
   virtual_memory_page_stack(virtual_memory_page_stack&& other) noexcept
     : _reservation(std::move(other._reservation))
     , _committed_bytes(exchange(other._committed_bytes, 0))
     , _page_size(exchange(other._page_size, 0))
   {
   }
-  auto operator=(virtual_memory_page_stack const& other) & -> virtual_memory_page_stack&
-  {
-    return *this = virtual_memory_page_stack(other);
-  }
+  auto operator=(virtual_memory_page_stack const& other) = delete;
   auto operator=(virtual_memory_page_stack&& other) & noexcept -> virtual_memory_page_stack&
   {
     auto temp = std::move(*this);
@@ -397,7 +384,7 @@ public:
   explicit pinned_vector_impl(size_type max_size) : _storage(max_size * sizeof(T)) {}
 
   pinned_vector_impl(pinned_vector_impl const& other)
-    : _storage(other._storage), _end(uninitialized_copy(other.cbegin(), other.cend(), data()))
+    : _storage(other._storage.reserved_bytes()), _end(uninitialized_copy(other.cbegin(), other.cend(), data()))
   {
   }
   pinned_vector_impl(pinned_vector_impl&& other) noexcept
