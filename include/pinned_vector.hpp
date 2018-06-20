@@ -317,8 +317,11 @@ public:
     {
       assert(bytes <= committed_bytes());
       auto const new_committed = round_up(committed_bytes() - bytes, page_size());
-      VirtualMemoryAllocator::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
-      _committed_bytes = new_committed;
+      if(new_committed < committed_bytes())
+      {
+        VirtualMemoryAllocator::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
+        _committed_bytes = new_committed;
+      }
     }
   }
 
