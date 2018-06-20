@@ -437,11 +437,27 @@ public:
     return data()[pos];
   }
 
-  auto front() -> T& { return (*this)[0]; }
-  auto front() const -> T const& { return (*this)[0]; }
+  auto front() -> T&
+  {
+    assert(size() > 0);
+    return (*this)[0];
+  }
+  auto front() const -> T const&
+  {
+    assert(size() > 0);
+    return (*this)[0];
+  }
 
-  auto back() -> T& { return (*this)[size() - 1]; }
-  auto back() const -> T const& { return (*this)[size() - 1]; }
+  auto back() -> T&
+  {
+    assert(size() > 0);
+    return (*this)[size() - 1];
+  }
+  auto back() const -> T const&
+  {
+    assert(size() > 0);
+    return (*this)[size() - 1];
+  }
 
   auto data() noexcept -> T* { return static_cast<T*>(_storage.base()); }
   auto data() const noexcept -> T const* { return static_cast<T const*>(_storage.base()); }
@@ -499,16 +515,19 @@ public:
   auto insert(const_iterator pos, T const& value) ->
     typename std::enable_if<std::is_copy_constructible<T&>::value, iterator>::type
   {
+    assert(is_valid_last_iterator(pos));
     return iterator(std::addressof(emplace(pos, value)));
   }
   template<typename U = T>
   auto insert(const_iterator pos, T&& value) ->
     typename std::enable_if<std::is_move_constructible<U>::value, iterator>::type
   {
+    assert(is_valid_last_iterator(pos));
     return iterator(std::addressof(emplace(pos, std::move(value))));
   }
   auto insert(const_iterator pos, size_type count, const T& value) -> iterator
   {
+    assert(is_valid_last_iterator(pos));
     return range_insert_impl(pos, count, [&value](T* first, T* last) { std::fill(first, last, value); });
   }
 
@@ -517,6 +536,7 @@ public:
     std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIter>::iterator_category>::value,
     iterator>::type
   {
+    assert(is_valid_last_iterator(pos));
     return insert(pos, first, last, typename std::iterator_traits<InputIter>::iterator_category());
   }
 
@@ -561,6 +581,7 @@ private:
 public:
   auto insert(const_iterator pos, std::initializer_list<T> ilist) -> iterator
   {
+    assert(is_valid_last_iterator(pos));
     return range_insert_impl(
       pos, ilist.size(), [&](T* d_first, T* d_last) { std::copy(ilist.begin(), ilist.end(), d_first); });
   }
@@ -570,6 +591,7 @@ public:
                               && std::is_move_assignable<T>::value,
                             T&>::type
   {
+    assert(is_valid_last_iterator(pos));
     grow_if_necessary(1);
     auto* p = to_pointer(pos);
     if(p != _end)
@@ -584,12 +606,16 @@ public:
   }
   auto erase(const_iterator pos) -> iterator
   {
+    assert(is_valid_iterator(pos));
     std::move(to_iterator(pos) + 1, end(), to_iterator(pos));
     destroy_at(--_end);
     return pos;
   }
   auto erase(const_iterator first, const_iterator last) -> iterator
   {
+    assert(is_valid_last_iterator(pos));
+    assert(is_valid_last_iterator(pos));
+    assert(first <= last);
     std::move(to_iterator(last), end(), to_iterator(first));
     destroy(to_iterator(last), end());
     _end = to_pointer(last);

@@ -16,20 +16,36 @@ static_assert(
   std::is_base_of<mknejp::detail::_pinned_vector::virtual_memory_reservation<>, mknejp::virtual_memory_reservation>(),
   "");
 
+static_assert(std::is_nothrow_move_constructible<mknejp::virtual_memory_reservation>::value, "");
+static_assert(std::is_nothrow_move_assignable<mknejp::virtual_memory_reservation>::value, "");
+
 TEST_CASE("virtual_memory_reservation")
 {
   struct Tag
   {
   };
   using allocator_stub = pinned_vector_test::allocator_stub<Tag>;
-  auto alloc = pinned_vector_test::reservation_tracking_allocator<Tag>();
+  auto alloc = pinned_vector_test::tracking_allocator<Tag>();
 
   char block1[100];
+  char block2[200];
 
   alloc.expect_reserve(block1, 100);
   alloc.expect_free(block1);
 
   using virtual_memory_reservation = mknejp::detail::_pinned_vector::virtual_memory_reservation<allocator_stub>;
+
+  SECTION("default constructed has no reservation")
+  {
+    {
+      auto vmr = virtual_memory_reservation();
+      REQUIRE(vmr.base() == nullptr);
+      REQUIRE(vmr.reserved_bytes() == 0);
+    }
+    REQUIRE(alloc.reservations() == 0);
+    REQUIRE(alloc.reserve_calls() == 0);
+    REQUIRE(alloc.free_calls() == 0);
+  }
 
   SECTION("ctor/dtor reserve/free virtual memory")
   {
@@ -46,7 +62,7 @@ TEST_CASE("virtual_memory_reservation")
     REQUIRE(alloc.free_calls() == 1);
   }
 
-  SECTION("move construction does not affect reservations")
+  SECTION("move construction")
   {
     {
       auto vmr1 = virtual_memory_reservation(100);
@@ -65,12 +81,11 @@ TEST_CASE("virtual_memory_reservation")
     REQUIRE(alloc.free_calls() == 1);
   }
 
-  SECTION("move assignment does not affect reservations")
+  SECTION("move assignment")
   {
     {
       auto vmr1 = virtual_memory_reservation(100);
 
-      char block2[200];
       alloc.expect_reserve(block2, 200);
       auto vmr2 = virtual_memory_reservation(200);
 
@@ -82,6 +97,43 @@ TEST_CASE("virtual_memory_reservation")
       REQUIRE(vmr1.reserved_bytes() == 200);
       REQUIRE(vmr2.base() == nullptr);
       REQUIRE(vmr2.reserved_bytes() == 0);
+      alloc.expect_free(block2);
+    }
+    REQUIRE(alloc.reservations() == 0);
+    REQUIRE(alloc.reserve_calls() == 2);
+    REQUIRE(alloc.free_calls() == 2);
+  }
+
+  SECTION("self move assignment frees the reservation")
+  {
+    auto vmr1 = virtual_memory_reservation(100);
+    vmr1 = std::move(vmr1);
+    REQUIRE(alloc.reservations() == 0);
+    REQUIRE(alloc.reserve_calls() == 1);
+    REQUIRE(alloc.free_calls() == 1);
+    REQUIRE(vmr1.reserved_bytes() == 0);
+  }
+
+  SECTION("swap")
+  {
+    {
+      auto vmr1 = virtual_memory_reservation(100);
+      {
+        alloc.expect_reserve(block2, 200);
+        auto vmr2 = virtual_memory_reservation(200);
+
+        static_assert(noexcept(swap(vmr1, vmr2)), "virtual_memory_reservation::swap() is not noexcept");
+
+        swap(vmr1, vmr2);
+        REQUIRE(alloc.reservations() == 2);
+        REQUIRE(alloc.reserve_calls() == 2);
+        REQUIRE(alloc.free_calls() == 0);
+        REQUIRE(vmr1.base() == block2);
+        REQUIRE(vmr2.base() == block1);
+        REQUIRE(vmr1.reserved_bytes() == 200);
+        REQUIRE(vmr2.reserved_bytes() == 100);
+        alloc.expect_free(block1);
+      }
       alloc.expect_free(block2);
     }
     REQUIRE(alloc.reservations() == 0);
