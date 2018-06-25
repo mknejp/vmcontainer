@@ -62,6 +62,7 @@ static void baseline_push_back(benchmark::State& state, tag<Vector>, T x)
 
   for(auto _ : state)
   {
+    (void)_;
     // Do not count reserve + destructor
     auto start = std::chrono::high_resolution_clock::now();
     std::fill_n(std::back_inserter(v), max_size, x);
@@ -92,6 +93,7 @@ static void push_back(benchmark::State& state, tag<Vector>, T x)
 {
   for(auto _ : state)
   {
+    (void)_;
     auto max_size = static_cast<typename Vector::size_type>(state.range(0));
     auto v = init_vector(max_size, tag<Vector>());
 

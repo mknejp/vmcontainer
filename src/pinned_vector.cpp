@@ -45,9 +45,11 @@ auto mknejp::detail::_pinned_vector::virtual_memory_system::free(void* offset, s
 {
 #ifdef WIN32
   auto const result = ::VirtualFree(offset, 0, MEM_RELEASE);
+  (void)result;
   assert(result != 0);
 #else
   auto const result = ::munmap(offset, num_bytes);
+  (void)result;
   assert(result == 0);
 #endif
 }
@@ -75,11 +77,14 @@ auto mknejp::detail::_pinned_vector::virtual_memory_system::decommit(void* offse
 {
 #ifdef WIN32
   auto const result = ::VirtualFree(offset, 0, MEM_DECOMMIT);
+  (void)result;
   assert(result != 0);
 #else
   auto const result1 = ::madvise(offset, num_bytes, MADV_DONTNEED);
+  (void)result1;
   assert(result1 == 0);
   auto const result2 = ::mprotect(offset, num_bytes, PROT_NONE);
+  (void)result2;
   assert(result2 == 0);
 #endif
 }
