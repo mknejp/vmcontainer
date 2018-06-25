@@ -399,7 +399,14 @@ public:
     : _storage(std::move(other._storage)), _end(_pinned_vector::exchange(other._end, nullptr))
   {
   }
-  auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl& { return *this = pinned_vector_impl(other); }
+  auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl&
+  {
+    if(this != std::addressof(other))
+    {
+      *this = pinned_vector_impl(other);
+    }
+    return *this;
+  }
   auto operator=(pinned_vector_impl&& other) & noexcept -> pinned_vector_impl&
   {
     auto temp = std::move(*this);
