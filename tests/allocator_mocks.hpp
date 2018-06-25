@@ -14,7 +14,7 @@
 namespace pinned_vector_test
 {
   template<typename Tag>
-  struct allocator_stub
+  struct virtual_memory_system_stub
   {
     static std::function<auto(std::size_t)->void*> reserve;
     static std::function<auto(void*, std::size_t num_bytes)->void> free;
@@ -24,15 +24,15 @@ namespace pinned_vector_test
   };
 
   template<typename Tag>
-  std::function<auto(std::size_t)->void*> allocator_stub<Tag>::reserve;
+  std::function<auto(std::size_t)->void*> virtual_memory_system_stub<Tag>::reserve;
   template<typename Tag>
-  std::function<auto(void*, std::size_t num_bytes)->void> allocator_stub<Tag>::free;
+  std::function<auto(void*, std::size_t num_bytes)->void> virtual_memory_system_stub<Tag>::free;
   template<typename Tag>
-  std::function<auto(void*, std::size_t)->void> allocator_stub<Tag>::commit;
+  std::function<auto(void*, std::size_t)->void> virtual_memory_system_stub<Tag>::commit;
   template<typename Tag>
-  std::function<auto(void*, std::size_t)->void> allocator_stub<Tag>::decommit;
+  std::function<auto(void*, std::size_t)->void> virtual_memory_system_stub<Tag>::decommit;
   template<typename Tag>
-  std::function<auto()->size_t> allocator_stub<Tag>::page_size;
+  std::function<auto()->size_t> virtual_memory_system_stub<Tag>::page_size;
 
   template<typename Tag>
   class tracking_allocator
@@ -40,7 +40,7 @@ namespace pinned_vector_test
   public:
     auto expect_reserve(void* block, std::size_t expected_size) -> void
     {
-      allocator_stub<Tag>::reserve = [this, block, expected_size](std::size_t num_bytes) {
+      virtual_memory_system_stub<Tag>::reserve = [this, block, expected_size](std::size_t num_bytes) {
         REQUIRE(num_bytes == expected_size);
         auto result = _reservations.insert(std::make_pair(block, num_bytes));
         REQUIRE(result.second == true);
@@ -51,7 +51,7 @@ namespace pinned_vector_test
 
     auto expect_free(void* block) -> void
     {
-      allocator_stub<Tag>::free = [this, block](void* p, std::size_t num_bytes) {
+      virtual_memory_system_stub<Tag>::free = [this, block](void* p, std::size_t num_bytes) {
         REQUIRE(block == p);
         auto it = _reservations.find(p);
         REQUIRE(it != _reservations.end());
@@ -63,7 +63,7 @@ namespace pinned_vector_test
 
     auto expect_commit(void* offset, std::size_t expected_size) -> void
     {
-      allocator_stub<Tag>::commit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
+      virtual_memory_system_stub<Tag>::commit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
         REQUIRE(num_bytes == expected_size);
         REQUIRE(offset == p);
         ++_commit_calls;
@@ -72,7 +72,7 @@ namespace pinned_vector_test
 
     auto expect_decommit(void* offset, std::size_t expected_size) -> void
     {
-      allocator_stub<Tag>::decommit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
+      virtual_memory_system_stub<Tag>::decommit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
         REQUIRE(num_bytes == expected_size);
         REQUIRE(offset == p);
         ++_decommit_calls;

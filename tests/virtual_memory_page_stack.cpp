@@ -24,10 +24,10 @@ TEST_CASE("virtual_memory_page_stack")
   struct Tag
   {
   };
-  using allocator_stub = pinned_vector_test::allocator_stub<Tag>;
+  using virtual_memory_system_stub = pinned_vector_test::virtual_memory_system_stub<Tag>;
   auto alloc = pinned_vector_test::tracking_allocator<Tag>();
 
-  allocator_stub::page_size = [] { return 100; };
+  virtual_memory_system_stub::page_size = [] { return 100; };
 
   char block1[4000];
   char block2[4000];
@@ -35,7 +35,8 @@ TEST_CASE("virtual_memory_page_stack")
   alloc.expect_reserve(block1, 1000);
   alloc.expect_free(block1);
 
-  using virtual_memory_page_stack = mknejp::detail::_pinned_vector::virtual_memory_page_stack<allocator_stub>;
+  using virtual_memory_page_stack =
+    mknejp::detail::_pinned_vector::virtual_memory_page_stack<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {

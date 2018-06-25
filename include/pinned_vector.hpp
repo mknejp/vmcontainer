@@ -26,12 +26,12 @@ namespace mknejp
   {
     namespace _pinned_vector
     {
-      struct virtual_memory_allocator;
+      struct virtual_memory_system;
 
-      template<typename VirtualMemoryAllocator = virtual_memory_allocator>
+      template<typename VirtualMemorySystem = virtual_memory_system>
       class virtual_memory_reservation;
 
-      template<typename VirtualMemoryAllocator = virtual_memory_allocator>
+      template<typename VirtualMemorySystem = virtual_memory_system>
       class virtual_memory_page_stack;
 
       template<typename T, typename VirtualMemoryPageStack = virtual_memory_page_stack<>>
@@ -199,10 +199,10 @@ auto mknejp::detail::_pinned_vector::uninitialized_default_construct_n(ForwardIt
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// virtual_memory_allocator
+// virtual_memory_system
 //
 
-struct mknejp::detail::_pinned_vector::virtual_memory_allocator
+struct mknejp::detail::_pinned_vector::virtual_memory_system
 {
   static auto reserve(std::size_t num_bytes) -> void*;
   static auto free(void* offset, std::size_t num_bytes) -> void;
@@ -216,7 +216,7 @@ struct mknejp::detail::_pinned_vector::virtual_memory_allocator
 // virtual_memory_reservation
 //
 
-template<typename VirtualMemoryAllocator>
+template<typename VirtualMemorySystem>
 class mknejp::detail::_pinned_vector::virtual_memory_reservation
 {
 public:
@@ -226,7 +226,7 @@ public:
     if(num_bytes > 0)
     {
       _reserved_bytes = num_bytes;
-      _base = VirtualMemoryAllocator::reserve(_reserved_bytes);
+      _base = VirtualMemorySystem::reserve(_reserved_bytes);
     }
   }
   virtual_memory_reservation(virtual_memory_reservation const& other) = delete;
@@ -245,7 +245,7 @@ public:
   {
     if(_base)
     {
-      VirtualMemoryAllocator::free(base(), reserved_bytes());
+      VirtualMemorySystem::free(base(), reserved_bytes());
     }
   }
 
@@ -272,7 +272,7 @@ class mknejp::virtual_memory_reservation : detail::_pinned_vector::virtual_memor
 // virtual_memory_page_stack
 //
 
-template<typename VirtualMemoryAllocator>
+template<typename VirtualMemorySystem>
 class mknejp::detail::_pinned_vector::virtual_memory_page_stack
 {
 public:
@@ -296,7 +296,7 @@ public:
   {
     if(committed_bytes() > 0)
     {
-      VirtualMemoryAllocator::decommit(base(), committed_bytes());
+      VirtualMemorySystem::decommit(base(), committed_bytes());
     }
   }
 
@@ -306,7 +306,7 @@ public:
     {
       auto const new_committed = round_up(committed_bytes() + bytes, page_size());
       assert(new_committed <= reserved_bytes());
-      VirtualMemoryAllocator::commit(static_cast<char*>(base()) + committed_bytes(), new_committed - committed_bytes());
+      VirtualMemorySystem::commit(static_cast<char*>(base()) + committed_bytes(), new_committed - committed_bytes());
       _committed_bytes = new_committed;
     }
   }
@@ -319,7 +319,7 @@ public:
       auto const new_committed = round_up(committed_bytes() - bytes, page_size());
       if(new_committed < committed_bytes())
       {
-        VirtualMemoryAllocator::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
+        VirtualMemorySystem::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
         _committed_bytes = new_committed;
       }
     }
@@ -352,10 +352,10 @@ public:
   }
 
 private:
-  using Reservation = mknejp::detail::_pinned_vector::virtual_memory_reservation<VirtualMemoryAllocator>;
+  using Reservation = mknejp::detail::_pinned_vector::virtual_memory_reservation<VirtualMemorySystem>;
   Reservation _reservation;
   std::size_t _committed_bytes = 0;
-  std::size_t _page_size = VirtualMemoryAllocator::page_size();
+  std::size_t _page_size = VirtualMemorySystem::page_size();
 };
 
 class mknejp::virtual_memory_page_stack : detail::_pinned_vector::virtual_memory_page_stack<>
