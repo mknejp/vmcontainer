@@ -390,9 +390,10 @@ public:
   pinned_vector_impl() = default;
   explicit pinned_vector_impl(size_type max_size) : _storage(max_size * sizeof(T)) {}
 
-  pinned_vector_impl(pinned_vector_impl const& other)
-    : _storage(other._storage.reserved_bytes()), _end(uninitialized_copy(other.cbegin(), other.cend(), data()))
+  pinned_vector_impl(pinned_vector_impl const& other) : _storage(other._storage.reserved_bytes())
   {
+    _storage.commit(other.size() * sizeof(T));
+    _end = uninitialized_copy(other.cbegin(), other.cend(), data());
   }
   pinned_vector_impl(pinned_vector_impl&& other) noexcept
     : _storage(std::move(other._storage)), _end(_pinned_vector::exchange(other._end, nullptr))
