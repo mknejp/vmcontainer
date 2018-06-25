@@ -152,7 +152,15 @@ TEST_CASE("virtual_memory_page_stack")
 
     alloc.expect_decommit(block1, 400);
     alloc.expect_free(block1);
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-move"
+#endif
     vmps = std::move(vmps);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);

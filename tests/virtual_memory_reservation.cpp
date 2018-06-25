@@ -108,7 +108,16 @@ TEST_CASE("virtual_memory_reservation")
   SECTION("self move assignment frees the reservation")
   {
     auto vmr1 = virtual_memory_reservation(100);
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-move"
+#endif
     vmr1 = std::move(vmr1);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
