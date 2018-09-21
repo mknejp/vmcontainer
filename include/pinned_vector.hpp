@@ -621,8 +621,7 @@ public:
   }
   auto erase(const_iterator first, const_iterator last) -> iterator
   {
-    assert(is_valid_last_iterator(pos));
-    assert(is_valid_last_iterator(pos));
+    assert(is_valid_last_iterator(last));
     assert(first <= last);
     std::move(to_iterator(last), end(), to_iterator(first));
     destroy(to_iterator(last), end());
