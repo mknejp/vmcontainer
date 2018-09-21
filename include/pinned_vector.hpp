@@ -225,7 +225,7 @@ public:
   {
     if(num_bytes > 0)
     {
-      _reserved_bytes = num_bytes;
+      _reserved_bytes = round_up(num_bytes, VirtualMemorySystem::page_size());
       _base = VirtualMemorySystem::reserve(_reserved_bytes);
     }
   }

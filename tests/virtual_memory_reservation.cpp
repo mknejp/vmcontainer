@@ -30,6 +30,7 @@ TEST_CASE("virtual_memory_reservation")
   char block1[100];
   char block2[200];
 
+  virtual_memory_system_stub::page_size = [] { return 100; };
   alloc.expect_reserve(block1, 100);
   alloc.expect_free(block1);
 
@@ -62,6 +63,8 @@ TEST_CASE("virtual_memory_reservation")
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
   }
+
+  SECTION("round up reservation to page size") { auto vmr = virtual_memory_reservation(1); }
 
   SECTION("move construction")
   {
