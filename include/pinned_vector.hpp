@@ -487,8 +487,8 @@ public:
   auto rbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(data())); }
   auto rend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(_end)); }
 
-  auto rcbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(data())); }
-  auto rcend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(_end)); }
+  auto crbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(data())); }
+  auto crend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(_end)); }
 
   // Capacity
 

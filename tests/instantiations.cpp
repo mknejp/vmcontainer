@@ -63,12 +63,12 @@ static void required_functions()
   static_assert(std::is_same<decltype(a.begin()), typename pinned_vector<T>::iterator>::value, "");
   static_assert(std::is_same<decltype(a.cbegin()), typename pinned_vector<T>::const_iterator>::value, "");
   static_assert(std::is_same<decltype(a.rbegin()), typename pinned_vector<T>::reverse_iterator>::value, "");
-  static_assert(std::is_same<decltype(a.rcbegin()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
+  static_assert(std::is_same<decltype(a.crbegin()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
 
   static_assert(std::is_same<decltype(a.end()), typename pinned_vector<T>::iterator>::value, "");
   static_assert(std::is_same<decltype(a.cend()), typename pinned_vector<T>::const_iterator>::value, "");
   static_assert(std::is_same<decltype(a.rend()), typename pinned_vector<T>::reverse_iterator>::value, "");
-  static_assert(std::is_same<decltype(a.rcend()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
+  static_assert(std::is_same<decltype(a.crend()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
 
   static_assert(std::is_same<decltype(a.emplace_back()), T&>::value, "");
 
@@ -96,12 +96,12 @@ static void required_functions()
   static_assert(std::is_same<decltype(c.begin()), typename pinned_vector<T>::const_iterator>::value, "");
   static_assert(std::is_same<decltype(c.cbegin()), typename pinned_vector<T>::const_iterator>::value, "");
   static_assert(std::is_same<decltype(c.rbegin()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
-  static_assert(std::is_same<decltype(c.rcbegin()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
+  static_assert(std::is_same<decltype(c.crbegin()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
 
   static_assert(std::is_same<decltype(c.end()), typename pinned_vector<T>::const_iterator>::value, "");
   static_assert(std::is_same<decltype(c.cend()), typename pinned_vector<T>::const_iterator>::value, "");
   static_assert(std::is_same<decltype(c.rend()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
-  static_assert(std::is_same<decltype(c.rcend()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
+  static_assert(std::is_same<decltype(c.crend()), typename pinned_vector<T>::const_reverse_iterator>::value, "");
 
   static_assert(std::is_same<decltype(c.front()), T const&>::value, "");
   static_assert(std::is_same<decltype(c.back()), T const&>::value, "");
