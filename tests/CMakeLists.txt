@@ -5,6 +5,7 @@ add_executable(
 
   instantiations.cpp
   main.cpp
+  pinned_vector/iterators.cpp
   virtual_memory_page_stack.cpp
   virtual_memory_reservation.cpp
 
