@@ -12,6 +12,6 @@ add_executable(
   allocator_mocks.hpp
 )
 
-target_link_libraries(pinned_vector.test PRIVATE pinned_vector Catch2::Catch)
+target_link_libraries(pinned_vector.test PRIVATE pinned_vector Catch2::Catch2)
 
 add_test(NAME pinned_vector.test COMMAND pinned_vector.test)
