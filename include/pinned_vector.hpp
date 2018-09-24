@@ -232,8 +232,7 @@ public:
   virtual_memory_reservation(virtual_memory_reservation const& other) = delete;
   virtual_memory_reservation(virtual_memory_reservation&& other) noexcept
     : _base(exchange(other._base, nullptr)), _reserved_bytes(exchange(other._reserved_bytes, 0))
-  {
-  }
+  {}
   auto operator=(virtual_memory_reservation const& other) = delete;
   auto operator=(virtual_memory_reservation&& other) & noexcept -> virtual_memory_reservation&
   {
@@ -283,8 +282,7 @@ public:
     : _reservation(std::move(other._reservation))
     , _committed_bytes(exchange(other._committed_bytes, 0))
     , _page_size(exchange(other._page_size, 0))
-  {
-  }
+  {}
   auto operator=(virtual_memory_page_stack const& other) = delete;
   auto operator=(virtual_memory_page_stack&& other) & noexcept -> virtual_memory_page_stack&
   {
@@ -397,8 +395,7 @@ public:
   }
   pinned_vector_impl(pinned_vector_impl&& other) noexcept
     : _storage(std::move(other._storage)), _end(_pinned_vector::exchange(other._end, nullptr))
-  {
-  }
+  {}
   auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl&
   {
     if(this != std::addressof(other))

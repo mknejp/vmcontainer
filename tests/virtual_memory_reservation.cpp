@@ -22,8 +22,7 @@ static_assert(std::is_nothrow_move_assignable<mknejp::virtual_memory_reservation
 TEST_CASE("virtual_memory_reservation")
 {
   struct Tag
-  {
-  };
+  {};
   using virtual_memory_system_stub = pinned_vector_test::virtual_memory_system_stub<Tag>;
   auto alloc = pinned_vector_test::tracking_allocator<Tag>();
 
@@ -113,12 +112,12 @@ TEST_CASE("virtual_memory_reservation")
     auto vmr1 = virtual_memory_reservation(100);
 
 #ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wself-move"
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wself-move"
 #endif
     vmr1 = std::move(vmr1);
 #ifdef __clang__
-#pragma clang diagnostic pop
+#  pragma clang diagnostic pop
 #endif
 
     REQUIRE(alloc.reservations() == 0);

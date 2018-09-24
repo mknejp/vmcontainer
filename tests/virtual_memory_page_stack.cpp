@@ -22,8 +22,7 @@ static_assert(std::is_nothrow_move_assignable<mknejp::virtual_memory_page_stack>
 TEST_CASE("virtual_memory_page_stack")
 {
   struct Tag
-  {
-  };
+  {};
   using virtual_memory_system_stub = pinned_vector_test::virtual_memory_system_stub<Tag>;
   auto alloc = pinned_vector_test::tracking_allocator<Tag>();
 
@@ -154,12 +153,12 @@ TEST_CASE("virtual_memory_page_stack")
     alloc.expect_free(block1);
 
 #ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wself-move"
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wself-move"
 #endif
     vmps = std::move(vmps);
 #ifdef __clang__
-#pragma clang diagnostic pop
+#  pragma clang diagnostic pop
 #endif
 
     REQUIRE(alloc.reservations() == 0);

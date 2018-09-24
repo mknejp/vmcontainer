@@ -18,8 +18,7 @@ namespace
 {
   template<typename>
   struct tag
-  {
-  };
+  {};
 
   template<typename T>
   auto init_vector(std::size_t max_size, tag<std::vector<T>>) -> std::vector<T>
@@ -60,7 +59,7 @@ static void baseline_push_back(benchmark::State& state, tag<Vector>, T x)
   auto v = init_vector(max_size, tag<Vector>());
   v.reserve(max_size);
 
-  for(auto _ : state)
+  for(auto _: state)
   {
     (void)_;
     // Do not count reserve + destructor
@@ -91,7 +90,7 @@ BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<string>, tag<pinned_vector<s
 template<typename Vector, typename T>
 static void push_back(benchmark::State& state, tag<Vector>, T x)
 {
-  for(auto _ : state)
+  for(auto _: state)
   {
     (void)_;
     auto max_size = static_cast<typename Vector::size_type>(state.range(0));
