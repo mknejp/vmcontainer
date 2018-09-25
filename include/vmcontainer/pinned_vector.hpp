@@ -17,14 +17,14 @@
 
 namespace mknejp
 {
-  template<typename T>
-  class pinned_vector;
-
-  namespace detail
+  namespace vmcontainer
   {
-    namespace _pinned_vector
+    template<typename T>
+    class pinned_vector;
+
+    namespace detail
     {
-      template<typename T, typename VirtualMemoryPageStack = virtual_memory_page_stack<>>
+      template<typename T, typename VirtualMemoryPageStack>
       class pinned_vector_impl;
     }
   }
@@ -35,7 +35,7 @@ namespace mknejp
 //
 
 template<typename T, typename VirtualMemoryPageStack>
-class mknejp::detail::_pinned_vector::pinned_vector_impl
+class mknejp::vmcontainer::detail::pinned_vector_impl
 {
 public:
   static_assert(std::is_destructible<T>::value, "value_type must satisfy Destructible concept");
@@ -50,8 +50,8 @@ public:
 
   using iterator = T*;
   using const_iterator = T const*;
-  using reverse_iterator = std::reverse_iterator<T*>;
-  using const_reverse_iterator = std::reverse_iterator<T const*>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   // Special members
   pinned_vector_impl() = default;
@@ -63,7 +63,7 @@ public:
     _end = uninitialized_copy(other.cbegin(), other.cend(), data());
   }
   pinned_vector_impl(pinned_vector_impl&& other) noexcept
-    : _storage(std::move(other._storage)), _end(_pinned_vector::exchange(other._end, nullptr))
+    : _storage(std::move(other._storage)), _end(detail::exchange(other._end, nullptr))
   {}
   auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl&
   {
@@ -422,10 +422,10 @@ private:
 //
 
 template<typename T>
-class mknejp::pinned_vector : public detail::_pinned_vector::pinned_vector_impl<T>
+class mknejp::vmcontainer::pinned_vector : public detail::pinned_vector_impl<T, vm::page_stack>
 {
 public:
-  using detail::_pinned_vector::pinned_vector_impl<T>::pinned_vector_impl;
+  using detail::pinned_vector_impl<T, vm::page_stack>::pinned_vector_impl;
 
   friend void swap(pinned_vector& lhs, pinned_vector& rhs) noexcept { lhs.swap(rhs); }
 };

@@ -12,7 +12,7 @@
 #include <chrono>
 #include <vector>
 
-using mknejp::pinned_vector;
+using mknejp::vmcontainer::pinned_vector;
 
 namespace
 {

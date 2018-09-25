@@ -10,7 +10,7 @@
 
 #include <type_traits>
 
-using mknejp::pinned_vector;
+using mknejp::vmcontainer::pinned_vector;
 
 TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned_vector][iterators]")
 {
