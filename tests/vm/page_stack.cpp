@@ -4,7 +4,7 @@
 // (See accompanying file LICENSE.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "vmcontainer/pinned_vector.hpp"
+#include "vmcontainer/vm.hpp"
 
 #include "allocator_mocks.hpp"
 
@@ -12,14 +12,14 @@
 
 #include <type_traits>
 
-static_assert(
-  std::is_base_of<mknejp::detail::_pinned_vector::virtual_memory_page_stack<>, mknejp::virtual_memory_page_stack>(),
-  "");
+using namespace mknejp::vmcontainer;
 
-static_assert(std::is_nothrow_move_constructible<mknejp::virtual_memory_page_stack>::value, "");
-static_assert(std::is_nothrow_move_assignable<mknejp::virtual_memory_page_stack>::value, "");
+static_assert(std::is_base_of<vm::detail::page_stack<vm::default_vm_traits>, vm::page_stack>(), "");
 
-TEST_CASE("virtual_memory_page_stack")
+static_assert(std::is_nothrow_move_constructible<vm::page_stack>::value, "");
+static_assert(std::is_nothrow_move_assignable<vm::page_stack>::value, "");
+
+TEST_CASE("vm/page_stack")
 {
   struct Tag
   {};
@@ -34,13 +34,12 @@ TEST_CASE("virtual_memory_page_stack")
   alloc.expect_reserve(block1, 1000);
   alloc.expect_free(block1);
 
-  using virtual_memory_page_stack =
-    mknejp::detail::_pinned_vector::virtual_memory_page_stack<virtual_memory_system_stub>;
+  using page_stack = vm::detail::page_stack<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {
     {
-      auto vmr = virtual_memory_page_stack();
+      auto vmr = page_stack();
       REQUIRE(vmr.base() == nullptr);
       REQUIRE(vmr.reserved_bytes() == 0);
       REQUIRE(vmr.committed_bytes() == 0);
@@ -55,7 +54,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("ctor/dtor reserve/free virtual memory")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       REQUIRE(alloc.reservations() == 1);
       REQUIRE(alloc.reserve_calls() == 1);
       REQUIRE(alloc.free_calls() == 0);
@@ -74,7 +73,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("move construction")
   {
     {
-      auto vmps1 = virtual_memory_page_stack(1000);
+      auto vmps1 = page_stack(1000);
       alloc.expect_commit(block1, 400);
       vmps1.commit(400);
 
@@ -105,13 +104,13 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("move assignment")
   {
     {
-      auto vmps1 = virtual_memory_page_stack(1000);
+      auto vmps1 = page_stack(1000);
       alloc.expect_commit(block1, 400);
       vmps1.commit(400);
 
       {
         alloc.expect_reserve(block2, 2000);
-        auto vmps2 = virtual_memory_page_stack(2000);
+        auto vmps2 = page_stack(2000);
         alloc.expect_commit(block2, 300);
         vmps2.commit(300);
 
@@ -145,7 +144,7 @@ TEST_CASE("virtual_memory_page_stack")
 
   SECTION("self move assignment frees the reservation")
   {
-    auto vmps = virtual_memory_page_stack(1000);
+    auto vmps = page_stack(1000);
     alloc.expect_commit(block1, 400);
     vmps.commit(400);
 
@@ -175,7 +174,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("single commit() is decommited in dtor")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       alloc.expect_commit(block1, 100);
       vmps.commit(100);
       REQUIRE(vmps.committed_bytes() == 100);
@@ -193,7 +192,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("single commit() and matching decommit()")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       alloc.expect_commit(block1, 100);
       vmps.commit(100);
       REQUIRE(vmps.committed_bytes() == 100);
@@ -215,7 +214,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("multiple commit() are decommited in dtor as one")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       alloc.expect_commit(block1, 100);
       vmps.commit(100);
       REQUIRE(vmps.committed_bytes() == 100);
@@ -239,7 +238,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("multiple commit() and decommit()")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       alloc.expect_commit(block1, 100);
       vmps.commit(100);
       REQUIRE(vmps.committed_bytes() == 100);
@@ -281,7 +280,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("commit() amount is rounded up to page size")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       vmps.commit(0);
       REQUIRE(vmps.committed_bytes() == 0);
       REQUIRE(alloc.commit_calls() == 0);
@@ -322,7 +321,7 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("decommit() amount is rounded down to page size")
   {
     {
-      auto vmps = virtual_memory_page_stack(1000);
+      auto vmps = page_stack(1000);
       alloc.expect_commit(block1, 400);
       vmps.commit(400);
       REQUIRE(vmps.committed_bytes() == 400);
@@ -368,17 +367,17 @@ TEST_CASE("virtual_memory_page_stack")
   SECTION("swap")
   {
     {
-      auto vmps1 = virtual_memory_page_stack(1000);
+      auto vmps1 = page_stack(1000);
       alloc.expect_commit(block1, 400);
       vmps1.commit(400);
 
       {
         alloc.expect_reserve(block2, 2000);
-        auto vmps2 = virtual_memory_page_stack(2000);
+        auto vmps2 = page_stack(2000);
         alloc.expect_commit(block2, 300);
         vmps2.commit(300);
 
-        static_assert(noexcept(swap(vmps1, vmps2)), "virtual_memory_page_stack::swap() is not noexcept");
+        static_assert(noexcept(swap(vmps1, vmps2)), "page_stack::swap() is not noexcept");
 
         swap(vmps1, vmps2);
         REQUIRE(alloc.reservations() == 2);

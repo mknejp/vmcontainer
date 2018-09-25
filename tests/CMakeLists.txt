@@ -6,12 +6,13 @@ add_executable(
   instantiations.cpp
   main.cpp
   pinned_vector/iterators.cpp
-  virtual_memory_page_stack.cpp
-  virtual_memory_reservation.cpp
+  vm/page_stack.cpp
+  vm/reservation.cpp
 
   allocator_mocks.hpp
 )
 
 target_link_libraries(vmcontainer.test PRIVATE vmcontainer Catch2::Catch2)
+target_include_directories(vmcontainer.test PRIVATE .)
 
 add_test(NAME vmcontainer.test COMMAND vmcontainer.test)
