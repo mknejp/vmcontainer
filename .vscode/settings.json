@@ -68,7 +68,7 @@
     "CMAKE_CXX_STANDARD": 11,
     "CMAKE_CXX_EXTENSIONS": "OFF",
     "BUILD_TESTING": "ON",
-    "WITH_PINNED_VECTOR_BENCHMARKS": "ON"
+    "WITH_VMCONTAINER_BENCHMARKS": "ON"
   },
   "cmake.configureOnOpen": true
 }

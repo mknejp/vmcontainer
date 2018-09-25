@@ -1,7 +1,7 @@
 find_package(Catch2 CONFIG REQUIRED)
 
 add_executable(
-  pinned_vector.test
+  vmcontainer.test
 
   instantiations.cpp
   main.cpp
@@ -12,6 +12,6 @@ add_executable(
   allocator_mocks.hpp
 )
 
-target_link_libraries(pinned_vector.test PRIVATE pinned_vector Catch2::Catch2)
+target_link_libraries(vmcontainer.test PRIVATE vmcontainer Catch2::Catch2)
 
-add_test(NAME pinned_vector.test COMMAND pinned_vector.test)
+add_test(NAME vmcontainer.test COMMAND vmcontainer.test)

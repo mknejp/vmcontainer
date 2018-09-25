@@ -1,20 +1,20 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(pinned_vector)
+project(vmcontainer)
 
 add_library(
-    pinned_vector
+  vmcontainer
     src/pinned_vector.cpp
-    include/pinned_vector.hpp)
+    include/vmcontainer/pinned_vector.hpp)
 
-target_include_directories(pinned_vector PUBLIC include)
+target_include_directories(vmcontainer PUBLIC include)
 
 include(CTest)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 
-option(WITH_PINNED_VECTOR_BENCHMARKS OFF "Enable to include targets for pinned_vector benchmark applications.")
-if(WITH_PINNED_VECTOR_BENCHMARKS)
+option(WITH_VMCONTAINER_BENCHMARKS OFF "Enable to include targets for vmcontainer benchmark applications.")
+if(WITH_VMCONTAINER_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
