@@ -4,7 +4,7 @@ project(vmcontainer)
 
 add_library(
   vmcontainer
-    src/pinned_vector.cpp
+    src/vm.cpp
     include/vmcontainer/detail.hpp
     include/vmcontainer/pinned_vector.hpp
     include/vmcontainer/vm.hpp
