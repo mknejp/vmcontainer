@@ -77,7 +77,7 @@ static void baseline_push_back(benchmark::State& state, tag<Vector>, T x)
 BENCHMARK_CAPTURE(baseline_push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_int);
 BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_int);
 
-// std::string with small stirng optimization
+// std::string with small string optimization
 BENCHMARK_CAPTURE(baseline_push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
   ->Apply(configure_string);
 BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
@@ -110,7 +110,7 @@ static void push_back(benchmark::State& state, tag<Vector>, T x)
 BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_int);
 BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_int);
 
-// std::string with small stirng optimization
+// std::string with small string optimization
 BENCHMARK_CAPTURE(push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
   ->Apply(configure_string);
 BENCHMARK_CAPTURE(push_back, pinned_vector<string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
