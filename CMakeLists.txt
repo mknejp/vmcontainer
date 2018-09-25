@@ -5,6 +5,7 @@ project(vmcontainer)
 add_library(
   vmcontainer
     src/pinned_vector.cpp
+    include/vmcontainer/detail.hpp
     include/vmcontainer/pinned_vector.hpp)
 
 target_include_directories(vmcontainer PUBLIC include)
