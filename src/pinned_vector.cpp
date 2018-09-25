@@ -7,19 +7,19 @@
 #include "vmcontainer/pinned_vector.hpp"
 
 #ifdef WIN32
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#  define NOMINMAX
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
 #else
-#include <sys/mman.h>
-#include <unistd.h>
+#  include <sys/mman.h>
+#  include <unistd.h>
 #endif
 
 #include <cassert>
 #include <stdexcept>
 #include <system_error>
 
-auto mknejp::detail::_pinned_vector::virtual_memory_system::reserve(std::size_t num_bytes) -> void*
+auto mknejp::vmcontainer::vm::virtual_memory_system::reserve(std::size_t num_bytes) -> void*
 {
   assert(num_bytes > 0);
 
@@ -41,7 +41,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_system::reserve(std::size_t 
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_memory_system::free(void* offset, std::size_t num_bytes) -> void
+auto mknejp::vmcontainer::vm::virtual_memory_system::free(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
   auto const result = ::VirtualFree(offset, 0, MEM_RELEASE);
@@ -54,7 +54,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_system::free(void* offset, s
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_memory_system::commit(void* offset, std::size_t num_bytes) -> void
+auto mknejp::vmcontainer::vm::virtual_memory_system::commit(void* offset, std::size_t num_bytes) -> void
 {
   assert(num_bytes > 0);
 
@@ -73,7 +73,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_system::commit(void* offset,
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_memory_system::decommit(void* offset, std::size_t num_bytes) -> void
+auto mknejp::vmcontainer::vm::virtual_memory_system::decommit(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
   auto const result = ::VirtualFree(offset, 0, MEM_DECOMMIT);
@@ -89,7 +89,7 @@ auto mknejp::detail::_pinned_vector::virtual_memory_system::decommit(void* offse
 #endif
 }
 
-auto mknejp::detail::_pinned_vector::virtual_memory_system::page_size() noexcept -> std::size_t
+auto mknejp::vmcontainer::vm::virtual_memory_system::page_size() noexcept -> std::size_t
 {
 #ifdef WIN32
   auto info = SYSTEM_INFO{};
