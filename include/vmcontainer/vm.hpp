@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <memory>
 
 namespace mknejp
 {
@@ -31,6 +32,7 @@ namespace mknejp
 
       namespace detail
       {
+        using vmcontainer::detail::exchange;
         using vmcontainer::detail::round_up;
 
         template<typename VirtualMemoryTraits>
@@ -71,39 +73,36 @@ public:
   {
     if(num_bytes > 0)
     {
-      _reserved_bytes = round_up(num_bytes, VirtualMemoryTraits::page_size());
-      _base = VirtualMemoryTraits::reserve(_reserved_bytes);
-    }
-  }
-  reservation(reservation const& other) = delete;
-  reservation(reservation&& other) noexcept { swap(*this, other); }
-  reservation& operator=(reservation const& other) = delete;
-  reservation& operator=(reservation&& other) & noexcept
-  {
-    auto temp = std::move(other);
-    swap(*this, temp);
-    return *this;
-  }
-  ~reservation()
-  {
-    if(_base)
-    {
-      VirtualMemoryTraits::free(base(), reserved_bytes());
+      num_bytes = round_up(num_bytes, VirtualMemoryTraits::page_size());
+      _reservation.reset(VirtualMemoryTraits::reserve(num_bytes));
+      _reservation.get_deleter().reserved_bytes = num_bytes;
     }
   }
 
   friend void swap(reservation& lhs, reservation& rhs) noexcept
   {
-    std::swap(lhs._base, rhs._base);
-    std::swap(lhs._reserved_bytes, rhs._reserved_bytes);
+    using std::swap;
+    swap(lhs._reservation, rhs._reservation);
   }
 
-  auto base() const noexcept -> void* { return _base; }
-  auto reserved_bytes() const noexcept -> std::size_t { return _reserved_bytes; }
+  auto base() const noexcept -> void* { return _reservation.get(); }
+  auto reserved_bytes() const noexcept -> std::size_t { return _reservation.get_deleter().reserved_bytes; }
 
 private:
-  void* _base = nullptr; // The starting address of the reserved address space
-  std::size_t _reserved_bytes = 0; // Total size of reserved address space in bytes
+  struct deleter
+  {
+    deleter() = default;
+    deleter(deleter&& other) noexcept { std::swap(reserved_bytes, other.reserved_bytes); }
+    deleter& operator=(deleter&& other) noexcept
+    {
+      reserved_bytes = exchange(other.reserved_bytes, 0);
+      return *this;
+    }
+    auto operator()(void* p) const -> void { VirtualMemoryTraits::free(p, reserved_bytes); }
+    std::size_t reserved_bytes = 0;
+  };
+
+  std::unique_ptr<void, deleter> _reservation;
 };
 
 class mknejp::vmcontainer::vm::reservation : public detail::reservation<default_vm_traits>
