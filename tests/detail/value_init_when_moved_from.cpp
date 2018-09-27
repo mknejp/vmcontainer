@@ -25,11 +25,12 @@ TEST_CASE("detail::value_init_when_moved_from")
   GIVEN("a default constructed value_init_when_moved_from")
   {
     auto x = value_init_when_moved_from<int>();
-    auto p = value_init_when_moved_from<int*>();
+    using pointer = int*;
+    auto p = value_init_when_moved_from<pointer>();
     THEN("its value compares equal to a value-initialized value_type")
     {
       REQUIRE(x.value == int{});
-      REQUIRE(p.value == (int*){});
+      REQUIRE(p.value == pointer{});
       REQUIRE(p.value == nullptr);
     }
   }
