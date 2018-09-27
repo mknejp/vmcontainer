@@ -3,6 +3,7 @@ find_package(Catch2 CONFIG REQUIRED)
 add_executable(
   vmcontainer.test
 
+  detail/algorithms.cpp
   instantiations.cpp
   main.cpp
   pinned_vector/iterators.cpp
