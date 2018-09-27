@@ -10,7 +10,7 @@
 
 #include <type_traits>
 
-using mknejp::vmcontainer::pinned_vector;
+using namespace mknejp::vmcontainer;
 
 TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned_vector][iterators]")
 {
@@ -99,8 +99,8 @@ TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned
 
   GIVEN("an empty container")
   {
-    auto v = pinned_vector<int>(1);
-    auto const cv = pinned_vector<int>(1);
+    auto v = pinned_vector<int>(num_elements{1});
+    auto const cv = pinned_vector<int>(num_elements{1});
     test(v, cv);
   }
   GIVEN("a default-constructed container")
@@ -111,7 +111,7 @@ TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned
   }
   GIVEN("a moved-from container")
   {
-    auto v = pinned_vector<int>(1);
+    auto v = pinned_vector<int>(num_elements{1});
     auto sink = std::move(v);
     test(v, pinned_vector<int>());
   }

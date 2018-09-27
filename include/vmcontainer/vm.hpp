@@ -101,7 +101,8 @@ class mknejp::vmcontainer::detail::page_stack
 {
 public:
   page_stack() = default;
-  explicit page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
+  explicit page_stack(num_bytes reserved_size) : _reservation(reserved_size.count) {}
+  explicit page_stack(num_pages reserved_size) : _reservation(reserved_size.count * VirtualMemoryTraits::page_size()) {}
 
   auto commit(std::size_t bytes) -> void
   {

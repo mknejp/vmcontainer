@@ -8,7 +8,7 @@
 
 #include <string>
 
-using mknejp::vmcontainer::pinned_vector;
+using namespace mknejp::vmcontainer;
 
 namespace
 {
@@ -47,7 +47,7 @@ template<typename T>
 static void required_functions()
 {
   // ctor
-  pinned_vector<T> a(typename pinned_vector<T>::size_type(100));
+  pinned_vector<T> a(num_bytes{100});
   // move ctor
   auto b = std::move(a);
   // move assign
@@ -115,7 +115,7 @@ static void required_functions()
 template<typename T>
 static void required_for_copyable()
 {
-  pinned_vector<T> a(typename pinned_vector<T>::size_type(100));
+  pinned_vector<T> a(num_bytes{100});
   // copy ctor
   auto b = a;
   // copy assign

@@ -55,9 +55,11 @@ public:
 
   // Special members
   pinned_vector_impl() = default;
-  explicit pinned_vector_impl(size_type max_size) : _storage(max_size * sizeof(T)) {}
+  explicit pinned_vector_impl(num_bytes max_size) : _storage(max_size) {}
+  explicit pinned_vector_impl(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
+  explicit pinned_vector_impl(num_pages max_size) : _storage(max_size) {}
 
-  pinned_vector_impl(pinned_vector_impl const& other) : _storage(other._storage.reserved_bytes())
+  pinned_vector_impl(pinned_vector_impl const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
   {
     _storage.commit(other.size() * sizeof(T));
     _end = uninitialized_copy(other.cbegin(), other.cend(), data());

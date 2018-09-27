@@ -13,6 +13,19 @@ namespace mknejp
 {
   namespace vmcontainer
   {
+    struct num_pages
+    {
+      std::size_t count;
+    };
+    struct num_elements
+    {
+      std::size_t count;
+    };
+    struct num_bytes
+    {
+      std::size_t count;
+    };
+
     namespace detail
     {
       // simple utility type that stores a value of type T and when moved from assigns to it a value-initialized object.
