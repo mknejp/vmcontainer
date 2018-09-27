@@ -173,20 +173,18 @@ public:
   auto base() const noexcept -> void* { return _reservation.base(); }
   auto committed_bytes() const noexcept -> std::size_t { return _committed_bytes; }
   auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
-  auto page_size() const noexcept -> std::size_t { return _page_size; }
+  auto page_size() const noexcept -> std::size_t { return VirtualMemoryTraits::page_size(); }
 
   friend void swap(page_stack& lhs, page_stack& rhs) noexcept
   {
     using std::swap;
     swap(lhs._reservation, rhs._reservation);
     swap(lhs._committed_bytes, rhs._committed_bytes);
-    swap(lhs._page_size, rhs._page_size);
   }
 
 private:
   reservation<VirtualMemoryTraits> _reservation;
   std::size_t _committed_bytes = 0;
-  std::size_t _page_size = VirtualMemoryTraits::page_size();
 };
 
 class mknejp::vmcontainer::vm::page_stack : public detail::page_stack<default_vm_traits>
