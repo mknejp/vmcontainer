@@ -29,19 +29,14 @@ namespace mknejp
       class reservation;
 
       class page_stack;
+    }
+    namespace detail
+    {
+      template<typename VirtualMemoryTraits>
+      class reservation;
 
-      namespace detail
-      {
-        using vmcontainer::detail::exchange;
-        using vmcontainer::detail::round_up;
-
-        template<typename VirtualMemoryTraits>
-        class reservation;
-
-        template<typename VirtualMemoryTraits>
-        class page_stack;
-      }
-
+      template<typename VirtualMemoryTraits>
+      class page_stack;
     }
   }
 }
@@ -65,7 +60,7 @@ struct mknejp::vmcontainer::vm::default_vm_traits
 //
 
 template<typename VirtualMemoryTraits>
-class mknejp::vmcontainer::vm::detail::reservation
+class mknejp::vmcontainer::detail::reservation
 {
 public:
   reservation() = default;
@@ -115,7 +110,7 @@ class mknejp::vmcontainer::vm::reservation : public detail::reservation<default_
 //
 
 template<typename VirtualMemoryTraits>
-class mknejp::vmcontainer::vm::detail::page_stack
+class mknejp::vmcontainer::detail::page_stack
 {
 public:
   page_stack() = default;
