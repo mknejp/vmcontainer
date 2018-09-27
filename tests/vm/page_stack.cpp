@@ -92,7 +92,7 @@ TEST_CASE("vm/page_stack")
       REQUIRE(vmps1.page_size() == 0);
       REQUIRE(vmps2.page_size() == 100);
 
-      alloc.expect_decommit(block1, 400);
+      alloc.expect_free(block1);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
@@ -114,7 +114,6 @@ TEST_CASE("vm/page_stack")
         alloc.expect_commit(block2, 300);
         vmps2.commit(300);
 
-        alloc.expect_decommit(block1, 400);
         alloc.expect_free(block1);
         vmps1 = std::move(vmps2);
 
@@ -132,7 +131,6 @@ TEST_CASE("vm/page_stack")
         REQUIRE(vmps1.page_size() == 100);
         REQUIRE(vmps2.page_size() == 0);
       }
-      alloc.expect_decommit(block2, 300);
       alloc.expect_free(block2);
     }
     REQUIRE(alloc.reservations() == 0);
@@ -148,7 +146,6 @@ TEST_CASE("vm/page_stack")
     alloc.expect_commit(block1, 400);
     vmps.commit(400);
 
-    alloc.expect_decommit(block1, 400);
     alloc.expect_free(block1);
 
 #ifdef __clang__
@@ -181,7 +178,7 @@ TEST_CASE("vm/page_stack")
       REQUIRE(alloc.commit_calls() == 1);
       REQUIRE(alloc.decommit_calls() == 0);
 
-      alloc.expect_decommit(block1, 100);
+      alloc.expect_free(block1);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
@@ -209,30 +206,6 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
     REQUIRE(alloc.commit_calls() == 1);
-    REQUIRE(alloc.decommit_calls() == 1);
-  }
-  SECTION("multiple commit() are decommited in dtor as one")
-  {
-    {
-      auto vmps = page_stack(1000);
-      alloc.expect_commit(block1, 100);
-      vmps.commit(100);
-      REQUIRE(vmps.committed_bytes() == 100);
-      REQUIRE(alloc.commit_calls() == 1);
-      REQUIRE(alloc.decommit_calls() == 0);
-
-      alloc.expect_commit(block1 + 100, 100);
-      vmps.commit(100);
-      REQUIRE(vmps.committed_bytes() == 200);
-      REQUIRE(alloc.commit_calls() == 2);
-      REQUIRE(alloc.decommit_calls() == 0);
-
-      alloc.expect_decommit(block1, 200);
-    }
-    REQUIRE(alloc.reservations() == 0);
-    REQUIRE(alloc.reserve_calls() == 1);
-    REQUIRE(alloc.free_calls() == 1);
-    REQUIRE(alloc.commit_calls() == 2);
     REQUIRE(alloc.decommit_calls() == 1);
   }
   SECTION("multiple commit() and decommit()")
@@ -269,7 +242,7 @@ TEST_CASE("vm/page_stack")
       REQUIRE(alloc.commit_calls() == 3);
       REQUIRE(alloc.decommit_calls() == 2);
 
-      alloc.expect_decommit(block1, 300);
+      alloc.expect_free(block1);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
@@ -310,7 +283,7 @@ TEST_CASE("vm/page_stack")
       REQUIRE(alloc.commit_calls() == 4);
       REQUIRE(alloc.decommit_calls() == 0);
 
-      alloc.expect_decommit(block1, 600);
+      alloc.expect_free(block1);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
@@ -355,7 +328,7 @@ TEST_CASE("vm/page_stack")
       REQUIRE(alloc.commit_calls() == 1);
       REQUIRE(alloc.decommit_calls() == 2);
 
-      alloc.expect_decommit(block1, 200);
+      alloc.expect_free(block1);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
@@ -393,10 +366,8 @@ TEST_CASE("vm/page_stack")
         REQUIRE(vmps1.committed_bytes() == 300);
         REQUIRE(vmps2.committed_bytes() == 400);
 
-        alloc.expect_decommit(block1, 400);
         alloc.expect_free(block1);
       }
-      alloc.expect_decommit(block2, 300);
       alloc.expect_free(block2);
     }
     REQUIRE(alloc.reservations() == 0);

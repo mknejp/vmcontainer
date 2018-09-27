@@ -102,15 +102,6 @@ class mknejp::vmcontainer::detail::page_stack
 public:
   page_stack() = default;
   explicit page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
-  page_stack(page_stack&& other) = default;
-  page_stack& operator=(page_stack&& other) = default;
-  ~page_stack()
-  {
-    if(committed_bytes() > 0)
-    {
-      VirtualMemoryTraits::decommit(base(), committed_bytes());
-    }
-  }
 
   auto commit(std::size_t bytes) -> void
   {
