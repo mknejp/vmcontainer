@@ -96,7 +96,7 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
     REQUIRE(alloc.commit_calls() == 1);
-    REQUIRE(alloc.decommit_calls() == 1);
+    REQUIRE(alloc.decommit_calls() == 0);
   }
 
   SECTION("move assignment")
@@ -119,7 +119,7 @@ TEST_CASE("vm/page_stack")
         REQUIRE(alloc.reserve_calls() == 2);
         REQUIRE(alloc.free_calls() == 1);
         REQUIRE(alloc.commit_calls() == 2);
-        REQUIRE(alloc.decommit_calls() == 1);
+        REQUIRE(alloc.decommit_calls() == 0);
         REQUIRE(vmps1.base() == block2);
         REQUIRE(vmps2.base() == nullptr);
         REQUIRE(vmps1.reserved_bytes() == 2000);
@@ -133,7 +133,7 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 2);
     REQUIRE(alloc.free_calls() == 2);
     REQUIRE(alloc.commit_calls() == 2);
-    REQUIRE(alloc.decommit_calls() == 2);
+    REQUIRE(alloc.decommit_calls() == 0);
   }
 
   SECTION("self move assignment is a no-op")
@@ -224,7 +224,7 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
     REQUIRE(alloc.commit_calls() == 3);
-    REQUIRE(alloc.decommit_calls() == 3);
+    REQUIRE(alloc.decommit_calls() == 2);
   }
   SECTION("commit() amount is rounded up to page size")
   {
@@ -265,7 +265,7 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
     REQUIRE(alloc.commit_calls() == 4);
-    REQUIRE(alloc.decommit_calls() == 1);
+    REQUIRE(alloc.decommit_calls() == 0);
   }
   SECTION("decommit() amount is rounded down to page size")
   {
@@ -310,7 +310,7 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
     REQUIRE(alloc.commit_calls() == 1);
-    REQUIRE(alloc.decommit_calls() == 3);
+    REQUIRE(alloc.decommit_calls() == 2);
   }
 
   SECTION("swap")
@@ -350,6 +350,6 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.reserve_calls() == 2);
     REQUIRE(alloc.free_calls() == 2);
     REQUIRE(alloc.commit_calls() == 2);
-    REQUIRE(alloc.decommit_calls() == 2);
+    REQUIRE(alloc.decommit_calls() == 0);
   }
 }
