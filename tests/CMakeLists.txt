@@ -4,6 +4,7 @@ add_executable(
   vmcontainer.test
 
   detail/algorithms.cpp
+  detail/value_init_when_moved_from.cpp
   instantiations.cpp
   main.cpp
   pinned_vector/iterators.cpp

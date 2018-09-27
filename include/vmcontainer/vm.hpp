@@ -74,27 +74,14 @@ public:
     }
   }
 
-  friend void swap(reservation& lhs, reservation& rhs) noexcept
-  {
-    using std::swap;
-    swap(lhs._reservation, rhs._reservation);
-  }
-
   auto base() const noexcept -> void* { return _reservation.get(); }
   auto reserved_bytes() const noexcept -> std::size_t { return _reservation.get_deleter().reserved_bytes; }
 
 private:
   struct deleter
   {
-    deleter() = default;
-    deleter(deleter&& other) noexcept { std::swap(reserved_bytes, other.reserved_bytes); }
-    deleter& operator=(deleter&& other) noexcept
-    {
-      reserved_bytes = exchange(other.reserved_bytes, 0);
-      return *this;
-    }
     auto operator()(void* p) const -> void { VirtualMemoryTraits::free(p, reserved_bytes); }
-    std::size_t reserved_bytes = 0;
+    value_init_when_moved_from<std::size_t> reserved_bytes = 0;
   };
 
   std::unique_ptr<void, deleter> _reservation;
@@ -115,15 +102,8 @@ class mknejp::vmcontainer::detail::page_stack
 public:
   page_stack() = default;
   explicit page_stack(std::size_t num_bytes) : _reservation(num_bytes) {}
-  page_stack(page_stack const& other) = delete;
-  page_stack(page_stack&& other) noexcept { swap(*this, other); }
-  auto operator=(page_stack const& other) = delete;
-  auto operator=(page_stack&& other) & noexcept -> page_stack&
-  {
-    auto temp = std::move(other);
-    swap(*this, temp);
-    return *this;
-  }
+  page_stack(page_stack&& other) = default;
+  page_stack& operator=(page_stack&& other) = default;
   ~page_stack()
   {
     if(committed_bytes() > 0)
@@ -175,16 +155,9 @@ public:
   auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
   auto page_size() const noexcept -> std::size_t { return VirtualMemoryTraits::page_size(); }
 
-  friend void swap(page_stack& lhs, page_stack& rhs) noexcept
-  {
-    using std::swap;
-    swap(lhs._reservation, rhs._reservation);
-    swap(lhs._committed_bytes, rhs._committed_bytes);
-  }
-
 private:
   reservation<VirtualMemoryTraits> _reservation;
-  std::size_t _committed_bytes = 0;
+  value_init_when_moved_from<std::size_t> _committed_bytes = 0;
 };
 
 class mknejp::vmcontainer::vm::page_stack : public detail::page_stack<default_vm_traits>

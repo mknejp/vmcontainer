@@ -62,10 +62,8 @@ public:
     _storage.commit(other.size() * sizeof(T));
     _end = uninitialized_copy(other.cbegin(), other.cend(), data());
   }
-  pinned_vector_impl(pinned_vector_impl&& other) noexcept
-    : _storage(std::move(other._storage)), _end(detail::exchange(other._end, nullptr))
-  {}
-  auto operator=(pinned_vector_impl const& other) & -> pinned_vector_impl&
+  pinned_vector_impl(pinned_vector_impl&& other) = default;
+  pinned_vector_impl& operator=(pinned_vector_impl const& other) &
   {
     if(this != std::addressof(other))
     {
@@ -73,12 +71,7 @@ public:
     }
     return *this;
   }
-  auto operator=(pinned_vector_impl&& other) & noexcept -> pinned_vector_impl&
-  {
-    auto temp = std::move(*this);
-    swap(other);
-    return *this;
-  }
+  pinned_vector_impl& operator=(pinned_vector_impl&& other) = default;
 
   ~pinned_vector_impl() { clear(); }
 
@@ -328,7 +321,7 @@ public:
     else if(count < size())
     {
       auto const delta = size() - count;
-      destroy(_end - delta, _end);
+      destroy(_end - delta, _end.value);
       _end -= delta;
       shrink_to_fit();
     }
@@ -414,7 +407,7 @@ private:
   auto to_pointer(const_iterator it) noexcept -> iterator { return data() + (it - cbegin()); }
 
   VirtualMemoryPageStack _storage;
-  T* _end = data();
+  value_init_when_moved_from<T*> _end = data();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

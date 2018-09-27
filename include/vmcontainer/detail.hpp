@@ -15,6 +15,10 @@ namespace mknejp
   {
     namespace detail
     {
+      // simple utility type that stores a value of type T and when moved from assigns to it a value-initialized object.
+      template<typename T>
+      struct value_init_when_moved_from;
+
       constexpr auto round_up(std::size_t num_bytes, std::size_t page_size) noexcept -> std::size_t;
 
       template<typename T, typename... Args>
@@ -41,6 +45,35 @@ namespace mknejp
     }
   }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// value_init_when_moved_from
+//
+
+template<typename T>
+struct mknejp::vmcontainer::detail::value_init_when_moved_from
+{
+  using value_type = T;
+
+  value_init_when_moved_from() = default;
+  /*implicit*/ value_init_when_moved_from(T value) : value(std::move(value)) {}
+  value_init_when_moved_from(value_init_when_moved_from const& other) = default;
+  value_init_when_moved_from(value_init_when_moved_from&& other) noexcept(noexcept(exchange(other.value, T{})))
+    : value(exchange(other.value, {}))
+  {}
+  value_init_when_moved_from& operator=(value_init_when_moved_from const& other) = default;
+  value_init_when_moved_from& operator=(value_init_when_moved_from&& other)
+    & noexcept(noexcept(value = exchange(other.value, {})))
+  {
+    value = exchange(other.value, {});
+    return *this;
+  }
+  T value = {};
+
+  /*implicit*/ operator T&() & noexcept { return value; }
+  /*implicit*/ operator T const&() const& noexcept { return value; }
+  /*implicit*/ operator T &&() && noexcept { return value; }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // algorithms

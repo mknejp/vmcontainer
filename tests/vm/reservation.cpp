@@ -14,7 +14,7 @@
 
 using namespace mknejp::vmcontainer;
 
-static_assert(std::is_base_of<vm::detail::reservation<vm::default_vm_traits>, vm::reservation>(), "");
+static_assert(std::is_base_of<detail::reservation<vm::default_vm_traits>, vm::reservation>(), "");
 
 static_assert(std::is_nothrow_move_constructible<vm::reservation>::value, "");
 static_assert(std::is_nothrow_move_assignable<vm::reservation>::value, "");
@@ -33,7 +33,7 @@ TEST_CASE("vm/reservation")
   alloc.expect_reserve(block1, 100);
   alloc.expect_free(block1);
 
-  using reservation = vm::detail::reservation<virtual_memory_system_stub>;
+  using reservation = detail::reservation<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {
@@ -133,6 +133,7 @@ TEST_CASE("vm/reservation")
         alloc.expect_reserve(block2, 200);
         auto vmr2 = reservation(200);
 
+        using std::swap;
         static_assert(noexcept(swap(vmr1, vmr2)), "reservation::swap() is not noexcept");
 
         swap(vmr1, vmr2);

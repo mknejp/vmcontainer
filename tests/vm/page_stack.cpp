@@ -14,7 +14,7 @@
 
 using namespace mknejp::vmcontainer;
 
-static_assert(std::is_base_of<vm::detail::page_stack<vm::default_vm_traits>, vm::page_stack>(), "");
+static_assert(std::is_base_of<detail::page_stack<vm::default_vm_traits>, vm::page_stack>(), "");
 
 static_assert(std::is_nothrow_move_constructible<vm::page_stack>::value, "");
 static_assert(std::is_nothrow_move_assignable<vm::page_stack>::value, "");
@@ -34,7 +34,7 @@ TEST_CASE("vm/page_stack")
   alloc.expect_reserve(block1, 1000);
   alloc.expect_free(block1);
 
-  using page_stack = vm::detail::page_stack<virtual_memory_system_stub>;
+  using page_stack = detail::page_stack<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {
@@ -377,6 +377,7 @@ TEST_CASE("vm/page_stack")
         alloc.expect_commit(block2, 300);
         vmps2.commit(300);
 
+        using std::swap;
         static_assert(noexcept(swap(vmps1, vmps2)), "page_stack::swap() is not noexcept");
 
         swap(vmps1, vmps2);
