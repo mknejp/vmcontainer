@@ -19,6 +19,7 @@ using namespace detail;
 
 TEST_CASE("detail::value_init_when_moved_from")
 {
+  static_assert(std::is_nothrow_default_constructible<value_init_when_moved_from<int>>::value, "");
   static_assert(std::is_nothrow_move_constructible<value_init_when_moved_from<int>>::value, "");
   static_assert(std::is_nothrow_move_assignable<value_init_when_moved_from<int>>::value, "");
 

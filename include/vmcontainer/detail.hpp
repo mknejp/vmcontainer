@@ -69,7 +69,9 @@ struct mknejp::vmcontainer::detail::value_init_when_moved_from
   using value_type = T;
 
   value_init_when_moved_from() = default;
-  /*implicit*/ value_init_when_moved_from(T value) : value(std::move(value)) {}
+  /*implicit*/ value_init_when_moved_from(T value) noexcept(std::is_nothrow_move_constructible<T>::value)
+    : value(std::move(value))
+  {}
   value_init_when_moved_from(value_init_when_moved_from const& other) = default;
   value_init_when_moved_from(value_init_when_moved_from&& other) noexcept(noexcept(exchange(other.value, T{})))
     : value(exchange(other.value, {}))

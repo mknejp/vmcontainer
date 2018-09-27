@@ -16,6 +16,7 @@ using namespace mknejp::vmcontainer;
 
 static_assert(std::is_base_of<detail::page_stack<vm::default_vm_traits>, vm::page_stack>(), "");
 
+static_assert(std::is_nothrow_default_constructible<vm::page_stack>::value, "");
 static_assert(std::is_nothrow_move_constructible<vm::page_stack>::value, "");
 static_assert(std::is_nothrow_move_assignable<vm::page_stack>::value, "");
 

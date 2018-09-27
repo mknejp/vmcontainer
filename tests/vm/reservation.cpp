@@ -16,6 +16,7 @@ using namespace mknejp::vmcontainer;
 
 static_assert(std::is_base_of<detail::reservation<vm::default_vm_traits>, vm::reservation>(), "");
 
+static_assert(std::is_nothrow_default_constructible<vm::reservation>::value, "");
 static_assert(std::is_nothrow_move_constructible<vm::reservation>::value, "");
 static_assert(std::is_nothrow_move_assignable<vm::reservation>::value, "");
 
