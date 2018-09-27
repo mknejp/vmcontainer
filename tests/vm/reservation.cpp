@@ -106,7 +106,7 @@ TEST_CASE("vm/reservation")
     REQUIRE(alloc.free_calls() == 2);
   }
 
-  SECTION("self move assignment frees the reservation")
+  SECTION("self move assignment is a no-op")
   {
     auto vmr1 = reservation(100);
 
@@ -119,10 +119,12 @@ TEST_CASE("vm/reservation")
 #  pragma clang diagnostic pop
 #endif
 
-    REQUIRE(alloc.reservations() == 0);
+    REQUIRE(vmr1.base() == block1);
+    REQUIRE(vmr1.reserved_bytes() == 100);
+
+    REQUIRE(alloc.reservations() == 1);
     REQUIRE(alloc.reserve_calls() == 1);
-    REQUIRE(alloc.free_calls() == 1);
-    REQUIRE(vmr1.reserved_bytes() == 0);
+    REQUIRE(alloc.free_calls() == 0);
   }
 
   SECTION("swap")

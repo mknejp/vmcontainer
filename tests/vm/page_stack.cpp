@@ -89,8 +89,6 @@ TEST_CASE("vm/page_stack")
       REQUIRE(vmps2.reserved_bytes() == 1000);
       REQUIRE(vmps1.committed_bytes() == 0);
       REQUIRE(vmps2.committed_bytes() == 400);
-      REQUIRE(vmps1.page_size() == 0);
-      REQUIRE(vmps2.page_size() == 100);
 
       alloc.expect_free(block1);
     }
@@ -128,8 +126,6 @@ TEST_CASE("vm/page_stack")
         REQUIRE(vmps2.reserved_bytes() == 0);
         REQUIRE(vmps1.committed_bytes() == 300);
         REQUIRE(vmps2.committed_bytes() == 0);
-        REQUIRE(vmps1.page_size() == 100);
-        REQUIRE(vmps2.page_size() == 0);
       }
       alloc.expect_free(block2);
     }
@@ -140,13 +136,11 @@ TEST_CASE("vm/page_stack")
     REQUIRE(alloc.decommit_calls() == 2);
   }
 
-  SECTION("self move assignment frees the reservation")
+  SECTION("self move assignment is a no-op")
   {
     auto vmps = page_stack(1000);
     alloc.expect_commit(block1, 400);
     vmps.commit(400);
-
-    alloc.expect_free(block1);
 
 #ifdef __clang__
 #  pragma clang diagnostic push
@@ -157,35 +151,17 @@ TEST_CASE("vm/page_stack")
 #  pragma clang diagnostic pop
 #endif
 
-    REQUIRE(alloc.reservations() == 0);
+    REQUIRE(vmps.base() == block1);
+    REQUIRE(vmps.reserved_bytes() == 1000);
+    REQUIRE(vmps.committed_bytes() == 400);
+
+    REQUIRE(alloc.reservations() == 1);
     REQUIRE(alloc.reserve_calls() == 1);
-    REQUIRE(alloc.free_calls() == 1);
+    REQUIRE(alloc.free_calls() == 0);
     REQUIRE(alloc.commit_calls() == 1);
-    REQUIRE(alloc.decommit_calls() == 1);
-    REQUIRE(vmps.base() == nullptr);
-    REQUIRE(vmps.reserved_bytes() == 0);
-    REQUIRE(vmps.committed_bytes() == 0);
-    REQUIRE(vmps.page_size() == 0);
+    REQUIRE(alloc.decommit_calls() == 0);
   }
 
-  SECTION("single commit() is decommited in dtor")
-  {
-    {
-      auto vmps = page_stack(1000);
-      alloc.expect_commit(block1, 100);
-      vmps.commit(100);
-      REQUIRE(vmps.committed_bytes() == 100);
-      REQUIRE(alloc.commit_calls() == 1);
-      REQUIRE(alloc.decommit_calls() == 0);
-
-      alloc.expect_free(block1);
-    }
-    REQUIRE(alloc.reservations() == 0);
-    REQUIRE(alloc.reserve_calls() == 1);
-    REQUIRE(alloc.free_calls() == 1);
-    REQUIRE(alloc.commit_calls() == 1);
-    REQUIRE(alloc.decommit_calls() == 1);
-  }
   SECTION("single commit() and matching decommit()")
   {
     {
