@@ -21,6 +21,21 @@ namespace pinned_vector_test
     static std::function<auto(void*, std::size_t)->void> commit;
     static std::function<auto(void*, std::size_t)->void> decommit;
     static std::function<auto()->size_t> page_size;
+
+    static auto reset() -> void
+    {
+      reserve = [](std::size_t) -> void* {
+        FAIL("virtual_memory_system_stub::reserve() called without setup");
+        return nullptr;
+      };
+      free = [](void*, std::size_t) { FAIL("virtual_memory_system_stub::free() called without setup"); };
+      commit = [](void*, std::size_t) { FAIL("virtual_memory_system_stub::commit() called without setup"); };
+      decommit = [](void*, std::size_t) { FAIL("virtual_memory_system_stub::decommit() called without setup"); };
+      page_size = []() -> std::size_t {
+        FAIL("virtual_memory_system_stub::page_size() called without setup");
+        return 0;
+      };
+    }
   };
 
   template<typename Tag>
@@ -38,6 +53,8 @@ namespace pinned_vector_test
   class tracking_allocator
   {
   public:
+    tracking_allocator() { virtual_memory_system_stub<Tag>::reset(); }
+
     auto expect_reserve(void* block, std::size_t expected_size) -> void
     {
       virtual_memory_system_stub<Tag>::reserve = [this, block, expected_size](std::size_t num_bytes) {
