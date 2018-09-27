@@ -26,21 +26,19 @@ TEST_CASE("vm/reservation")
   using virtual_memory_system_stub = pinned_vector_test::virtual_memory_system_stub<Tag>;
   auto alloc = pinned_vector_test::tracking_allocator<Tag>();
 
-  char block1[100];
-  char block2[200];
-
   virtual_memory_system_stub::page_size = [] { return 100; };
-  alloc.expect_reserve(block1, 100);
-  alloc.expect_free(block1);
 
   using reservation = detail::reservation<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {
     {
+      char block[100];
+      alloc.expect_reserve(block, 100);
       auto vmr = reservation();
       REQUIRE(vmr.base() == nullptr);
       REQUIRE(vmr.reserved_bytes() == 0);
+      alloc.expect_free(block);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 0);
@@ -50,23 +48,36 @@ TEST_CASE("vm/reservation")
   SECTION("ctor/dtor reserve/free virtual memory")
   {
     {
+      char block[100];
+      alloc.expect_reserve(block, 100);
       auto vmr = reservation(100);
       REQUIRE(alloc.reservations() == 1);
       REQUIRE(alloc.reserve_calls() == 1);
       REQUIRE(alloc.free_calls() == 0);
-      REQUIRE(vmr.base() == block1);
+      REQUIRE(vmr.base() == block);
       REQUIRE(vmr.reserved_bytes() == 100);
+      alloc.expect_free(block);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 1);
   }
 
-  SECTION("round up reservation to page size") { auto vmr = reservation(1); }
+  SECTION("round up reservation to page size")
+  {
+    char block[100];
+    alloc.expect_reserve(block, 100);
+    auto vmr = reservation(1);
+    REQUIRE(vmr.base() == block);
+    REQUIRE(vmr.reserved_bytes() == 100);
+    alloc.expect_free(block);
+  }
 
   SECTION("move construction")
   {
     {
+      char block[100];
+      alloc.expect_reserve(block, 100);
       auto vmr1 = reservation(100);
 
       auto vmr2 = std::move(vmr1);
@@ -75,8 +86,9 @@ TEST_CASE("vm/reservation")
       REQUIRE(alloc.free_calls() == 0);
       REQUIRE(vmr1.base() == nullptr);
       REQUIRE(vmr1.reserved_bytes() == 0);
-      REQUIRE(vmr2.base() == block1);
+      REQUIRE(vmr2.base() == block);
       REQUIRE(vmr2.reserved_bytes() == 100);
+      alloc.expect_free(block);
     }
     REQUIRE(alloc.reservations() == 0);
     REQUIRE(alloc.reserve_calls() == 1);
@@ -86,8 +98,12 @@ TEST_CASE("vm/reservation")
   SECTION("move assignment")
   {
     {
+      char block1[100];
+      char block2[200];
+      alloc.expect_reserve(block1, 100);
       auto vmr1 = reservation(100);
 
+      alloc.expect_free(block1);
       alloc.expect_reserve(block2, 200);
       auto vmr2 = reservation(200);
 
@@ -108,6 +124,8 @@ TEST_CASE("vm/reservation")
 
   SECTION("self move assignment is a no-op")
   {
+    char block[100];
+    alloc.expect_reserve(block, 100);
     auto vmr1 = reservation(100);
 
 #ifdef __clang__
@@ -119,17 +137,21 @@ TEST_CASE("vm/reservation")
 #  pragma clang diagnostic pop
 #endif
 
-    REQUIRE(vmr1.base() == block1);
+    REQUIRE(vmr1.base() == block);
     REQUIRE(vmr1.reserved_bytes() == 100);
 
     REQUIRE(alloc.reservations() == 1);
     REQUIRE(alloc.reserve_calls() == 1);
     REQUIRE(alloc.free_calls() == 0);
+    alloc.expect_free(block);
   }
 
   SECTION("swap")
   {
     {
+      char block1[100];
+      char block2[200];
+      alloc.expect_reserve(block1, 100);
       auto vmr1 = reservation(100);
       {
         alloc.expect_reserve(block2, 200);
