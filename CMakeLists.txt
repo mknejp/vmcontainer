@@ -11,6 +11,7 @@ add_library(
     )
 
 target_include_directories(vmcontainer PUBLIC include)
+target_compile_features(vmcontainer PUBLIC cxx_std_14)
 
 include(CTest)
 if(BUILD_TESTING)

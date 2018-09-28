@@ -65,7 +65,6 @@
   },
   "cSpell.enabled": false,
   "cmake.configureSettings": {
-    "CMAKE_CXX_STANDARD": 11,
     "CMAKE_CXX_EXTENSIONS": "OFF",
     "BUILD_TESTING": "ON",
     "WITH_VMCONTAINER_BENCHMARKS": "ON"
