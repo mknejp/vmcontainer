@@ -53,12 +53,65 @@ public:
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-  // Special members
+  // constructors
   pinned_vector_impl() = default;
   explicit pinned_vector_impl(num_bytes max_size) : _storage(max_size) {}
   explicit pinned_vector_impl(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
   explicit pinned_vector_impl(num_pages max_size) : _storage(max_size) {}
 
+  pinned_vector_impl(num_bytes max_size, std::initializer_list<T> init) : _storage(max_size) { assign(init); }
+  pinned_vector_impl(num_elements max_size, std::initializer_list<T> init)
+    : _storage(num_bytes{max_size.count * sizeof(T)})
+  {
+    assign(init);
+  }
+  pinned_vector_impl(num_pages max_size, std::initializer_list<T> init) : _storage(max_size) { assign(init); }
+
+  template<typename InputIter,
+           typename = typename std::enable_if<
+             std::is_base_of<std::input_iterator_tag,
+                             typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
+  // requires InputIterator<InputIter>
+  pinned_vector_impl(num_bytes max_size, InputIter first, InputIter last) : _storage(max_size)
+  {
+    assign(first, last);
+  }
+  template<typename InputIter,
+           typename = typename std::enable_if<
+             std::is_base_of<std::input_iterator_tag,
+                             typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
+  // requires InputIterator<InputIter>
+  pinned_vector_impl(num_elements max_size, InputIter first, InputIter last)
+    : _storage(num_bytes{max_size.count * sizeof(T)})
+  {
+    assign(first, last);
+  }
+  template<typename InputIter,
+           typename = typename std::enable_if<
+             std::is_base_of<std::input_iterator_tag,
+                             typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
+  // requires InputIterator<InputIter>
+  pinned_vector_impl(num_pages max_size, InputIter first, InputIter last) : _storage(max_size)
+  {
+    assign(first, last);
+  }
+
+  pinned_vector_impl(num_bytes max_size, size_type count, T const& value) : _storage(max_size) { assign(count, value); }
+  pinned_vector_impl(num_elements max_size, size_type count, T const& value)
+    : _storage(num_bytes{max_size.count * sizeof(T)})
+  {
+    assign(count, value);
+  }
+  pinned_vector_impl(num_pages max_size, size_type count, T const& value) : _storage(max_size) { assign(count, value); }
+
+  pinned_vector_impl(num_bytes max_size, size_type count) : _storage(max_size) { assign(count, T{}); }
+  pinned_vector_impl(num_elements max_size, size_type count) : _storage(num_bytes{max_size.count * sizeof(T)})
+  {
+    assign(count, T{});
+  }
+  pinned_vector_impl(num_pages max_size, size_type count) : _storage(max_size) { assign(count, T{}); }
+
+  // Special members
   pinned_vector_impl(pinned_vector_impl const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
   {
     _storage.commit(other.size() * sizeof(T));
@@ -76,6 +129,23 @@ public:
   pinned_vector_impl& operator=(pinned_vector_impl&& other) = default;
 
   ~pinned_vector_impl() { clear(); }
+
+  // Assign
+  auto assign(std::size_t count, T const& value) -> void
+  {
+    clear();
+    insert(end(), count, value);
+  }
+  auto assign(std::initializer_list<T> init) -> void { assign(init.begin(), init.end()); }
+  template<typename InputIter>
+  // requires InputIterator<InputIter>
+  auto assign(InputIter first, InputIter last) -> typename std::enable_if<
+    std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIter>::iterator_category>::value,
+    void>::type
+  {
+    clear();
+    insert(end(), first, last, typename std::iterator_traits<InputIter>::iterator_category());
+  }
 
   // Element access
   auto at(size_type pos) -> T&
@@ -137,19 +207,19 @@ public:
   auto end() noexcept -> iterator { return iterator(_end); }
 
   auto begin() const noexcept -> const_iterator { return cbegin(); }
-  auto end() const noexcept -> const_iterator { return cbegin(); }
+  auto end() const noexcept -> const_iterator { return cend(); }
 
   auto cbegin() const noexcept -> const_iterator { return const_iterator(data()); }
   auto cend() const noexcept -> const_iterator { return const_iterator(_end); }
 
-  auto rbegin() noexcept -> reverse_iterator { return reverse_iterator(iterator(data())); }
-  auto rend() noexcept -> reverse_iterator { return reverse_iterator(iterator(_end)); }
+  auto rbegin() noexcept -> reverse_iterator { return reverse_iterator(begin()); }
+  auto rend() noexcept -> reverse_iterator { return reverse_iterator(end()); }
 
-  auto rbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(data())); }
-  auto rend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(_end)); }
+  auto rbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cbegin()); }
+  auto rend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cend()); }
 
-  auto crbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(data())); }
-  auto crend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(const_iterator(_end)); }
+  auto crbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cbegin()); }
+  auto crend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cend()); }
 
   // Capacity
 
@@ -237,7 +307,7 @@ private:
       grow_if_necessary(count);
       if(p != _end)
       {
-        uninitialized_move(_end - count, _end, _end);
+        uninitialized_move(_end - count, _end.value, _end.value);
         auto const rest = _end - p - count;
         std::move_backward(p, p + rest, _end - rest);
       }
@@ -406,7 +476,8 @@ private:
   }
 
   auto to_iterator(const_iterator it) noexcept -> iterator { return iterator(to_pointer(it)); }
-  auto to_pointer(const_iterator it) noexcept -> iterator { return data() + (it - cbegin()); }
+  auto to_pointer(const_iterator it) const noexcept -> T const* { return data() + (it - cbegin()); }
+  auto to_pointer(const_iterator it) noexcept -> T* { return data() + (it - cbegin()); }
 
   VirtualMemoryPageStack _storage;
   value_init_when_moved_from<T*> _end = data();

@@ -7,6 +7,7 @@ add_executable(
   detail/value_init_when_moved_from.cpp
   instantiations.cpp
   main.cpp
+  pinned_vector/cons.cpp
   pinned_vector/iterators.cpp
   vm/page_stack.cpp
   vm/reservation.cpp
