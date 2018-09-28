@@ -59,13 +59,13 @@ public:
   explicit pinned_vector_impl(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
   explicit pinned_vector_impl(num_pages max_size) : _storage(max_size) {}
 
-  pinned_vector_impl(num_bytes max_size, std::initializer_list<T> init) : _storage(max_size) { assign(init); }
+  pinned_vector_impl(num_bytes max_size, std::initializer_list<T> init) : _storage(max_size) { insert(end(), init); }
   pinned_vector_impl(num_elements max_size, std::initializer_list<T> init)
     : _storage(num_bytes{max_size.count * sizeof(T)})
   {
-    assign(init);
+    insert(end(), init);
   }
-  pinned_vector_impl(num_pages max_size, std::initializer_list<T> init) : _storage(max_size) { assign(init); }
+  pinned_vector_impl(num_pages max_size, std::initializer_list<T> init) : _storage(max_size) { insert(end(), init); }
 
   template<typename InputIter,
            typename = typename std::enable_if<
@@ -74,7 +74,7 @@ public:
   // requires InputIterator<InputIter>
   pinned_vector_impl(num_bytes max_size, InputIter first, InputIter last) : _storage(max_size)
   {
-    assign(first, last);
+    insert(end(), first, last);
   }
   template<typename InputIter,
            typename = typename std::enable_if<
@@ -84,7 +84,7 @@ public:
   pinned_vector_impl(num_elements max_size, InputIter first, InputIter last)
     : _storage(num_bytes{max_size.count * sizeof(T)})
   {
-    assign(first, last);
+    insert(end(), first, last);
   }
   template<typename InputIter,
            typename = typename std::enable_if<
@@ -93,23 +93,29 @@ public:
   // requires InputIterator<InputIter>
   pinned_vector_impl(num_pages max_size, InputIter first, InputIter last) : _storage(max_size)
   {
-    assign(first, last);
+    insert(end(), first, last);
   }
 
-  pinned_vector_impl(num_bytes max_size, size_type count, T const& value) : _storage(max_size) { assign(count, value); }
+  pinned_vector_impl(num_bytes max_size, size_type count, T const& value) : _storage(max_size)
+  {
+    insert(end(), count, value);
+  }
   pinned_vector_impl(num_elements max_size, size_type count, T const& value)
     : _storage(num_bytes{max_size.count * sizeof(T)})
   {
-    assign(count, value);
+    insert(end(), count, value);
   }
-  pinned_vector_impl(num_pages max_size, size_type count, T const& value) : _storage(max_size) { assign(count, value); }
+  pinned_vector_impl(num_pages max_size, size_type count, T const& value) : _storage(max_size)
+  {
+    insert(end(), count, value);
+  }
 
-  pinned_vector_impl(num_bytes max_size, size_type count) : _storage(max_size) { assign(count, T{}); }
+  pinned_vector_impl(num_bytes max_size, size_type count) : _storage(max_size) { insert(end(), count, T{}); }
   pinned_vector_impl(num_elements max_size, size_type count) : _storage(num_bytes{max_size.count * sizeof(T)})
   {
-    assign(count, T{});
+    insert(end(), count, T{});
   }
-  pinned_vector_impl(num_pages max_size, size_type count) : _storage(max_size) { assign(count, T{}); }
+  pinned_vector_impl(num_pages max_size, size_type count) : _storage(max_size) { insert(end(), count, T{}); }
 
   // Special members
   pinned_vector_impl(pinned_vector_impl const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
@@ -285,9 +291,9 @@ private:
   {
     for(auto it = pos; first != last; ++first, ++it)
     {
-      insert(pos, *first);
+      insert(it, *first);
     }
-    return pos;
+    return to_iterator(pos);
   }
 
   template<typename InputIter>
@@ -335,7 +341,7 @@ public:
     auto* p = to_pointer(pos);
     if(p != _end)
     {
-      uninitialized_move(_end - 1, _end, _end);
+      uninitialized_move(_end - 1, _end.value, _end.value);
       std::move_backward(p, _end - 1, p + 1);
       destroy_at(p);
     }

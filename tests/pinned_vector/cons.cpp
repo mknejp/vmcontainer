@@ -8,7 +8,10 @@
 
 #include "catch.hpp"
 
+#include <forward_list>
 #include <iterator>
+#include <list>
+#include <sstream>
 #include <type_traits>
 
 using namespace mknejp::vmcontainer;
@@ -41,11 +44,33 @@ TEST_CASE("pinned_vector.cons")
 
   SECTION("construction from iterator pair")
   {
-    auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    auto v = pinned_vector<int>(num_elements{init.size()}, init.begin(), init.end());
-    CHECK(v.size() == init.size());
-    CHECK(v.empty() == false);
-    CHECK(std::equal(v.begin(), v.end(), init.begin(), init.end()));
+    auto test = [](std::size_t n, auto first, auto last, auto expected_first, auto expected_last) {
+      auto v = pinned_vector<int>(num_elements{n}, first, last);
+      CHECK(v.size() == n);
+      CHECK(v.empty() == false);
+      CHECK(std::equal(v.begin(), v.end(), expected_first, expected_last));
+    };
+    auto const expected = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    SECTION("input iterator")
+    {
+      auto init = std::istringstream("0 1 2 3 4 5 6 7 8 9");
+      test(10, std::istream_iterator<int>(init), std::istream_iterator<int>(), expected.begin(), expected.end());
+    }
+    SECTION("forward iterator")
+    {
+      auto init = std::forward_list<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+      test(10, init.begin(), init.end(), expected.begin(), expected.end());
+    }
+    SECTION("bidirectional iterator")
+    {
+      auto init = std::list<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+      test(10, init.begin(), init.end(), expected.begin(), expected.end());
+    }
+    SECTION("random access iterator")
+    {
+      auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+      test(10, init.begin(), init.end(), expected.begin(), expected.end());
+    }
   }
 
   SECTION("construction from count and value")
