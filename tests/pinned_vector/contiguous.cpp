@@ -14,7 +14,7 @@
 
 using namespace mknejp::vmcontainer;
 
-TEST_CASE("pinned_vector.contiguous")
+SCENARIO("pinned_vector is a contiguous container", "[pinned_vector]")
 {
   auto check = [](auto const& container) {
     THEN("their elements are laid out in contiguous memory")

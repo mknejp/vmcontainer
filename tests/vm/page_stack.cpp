@@ -20,7 +20,7 @@ static_assert(std::is_nothrow_default_constructible<vm::page_stack>::value, "");
 static_assert(std::is_nothrow_move_constructible<vm::page_stack>::value, "");
 static_assert(std::is_nothrow_move_assignable<vm::page_stack>::value, "");
 
-TEST_CASE("vm/page_stack")
+TEST_CASE("vm::page_stack", "[page_stack]")
 {
   struct Tag
   {};

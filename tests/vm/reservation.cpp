@@ -20,7 +20,7 @@ static_assert(std::is_nothrow_default_constructible<vm::reservation>::value, "")
 static_assert(std::is_nothrow_move_constructible<vm::reservation>::value, "");
 static_assert(std::is_nothrow_move_assignable<vm::reservation>::value, "");
 
-TEST_CASE("vm/reservation")
+TEST_CASE("vm::reservation", "[reservation]")
 {
   struct Tag
   {};
