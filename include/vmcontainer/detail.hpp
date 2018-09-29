@@ -37,10 +37,6 @@ namespace mknejp
       template<typename T, typename... Args>
       auto construct_at(T* p, Args&&... args) -> T*;
       // C++17 algorithms
-      template<typename T, typename U = T>
-      auto exchange(T& obj,
-                    U&& new_value) noexcept(std::is_nothrow_move_constructible<typename std::decay<T>::type>::value&&
-                                              std::is_nothrow_assignable<T&, U&&>::value) -> T;
       template<typename T>
       auto destroy_at(T* p) -> void;
       template<typename ForwardIt>
@@ -97,16 +93,6 @@ constexpr auto mknejp::vmcontainer::detail::round_up(std::size_t num_bytes, std:
   -> std::size_t
 {
   return ((num_bytes + page_size - 1) / page_size) * page_size;
-}
-
-template<typename T, typename U>
-auto mknejp::vmcontainer::detail::exchange(T& obj, U&& new_value) noexcept(
-  std::is_nothrow_move_constructible<typename std::decay<T>::type>::value&& std::is_nothrow_assignable<T&, U&&>::value)
-  -> T
-{
-  auto old = std::move(obj);
-  obj = std::forward<U>(new_value);
-  return old;
 }
 
 template<typename T, typename... Args>

@@ -10,14 +10,8 @@
 
 #include <type_traits>
 
-using namespace mknejp::vmcontainer;
-using namespace detail;
+using namespace mknejp::vmcontainer::detail;
 
 ///////////////////////////////////////////////////////////////////////////////
 // algorithms
 //
-
-TEST_CASE("detail::exchange")
-{
-  static_assert(noexcept(exchange(std::declval<int&>(), std::declval<int>())), "");
-}
