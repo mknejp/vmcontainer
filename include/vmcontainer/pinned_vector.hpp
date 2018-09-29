@@ -218,14 +218,14 @@ public:
   auto cbegin() const noexcept -> const_iterator { return const_iterator(data()); }
   auto cend() const noexcept -> const_iterator { return const_iterator(_end); }
 
-  auto rbegin() noexcept -> reverse_iterator { return reverse_iterator(begin()); }
-  auto rend() noexcept -> reverse_iterator { return reverse_iterator(end()); }
+  auto rbegin() noexcept -> reverse_iterator { return reverse_iterator(end()); }
+  auto rend() noexcept -> reverse_iterator { return reverse_iterator(begin()); }
 
-  auto rbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cbegin()); }
-  auto rend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cend()); }
+  auto rbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cend()); }
+  auto rend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cbegin()); }
 
-  auto crbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cbegin()); }
-  auto crend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cend()); }
+  auto crbegin() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cend()); }
+  auto crend() const noexcept -> const_reverse_iterator { return const_reverse_iterator(cbegin()); }
 
   // Capacity
 

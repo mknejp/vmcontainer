@@ -75,6 +75,32 @@ TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned
   }
 }
 
+TEST_CASE("pinned_vector container iteration", "[pinned_vector][iterator]")
+{
+  GIVEN("a non-empty container")
+  {
+    auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    auto v = pinned_vector<int>(num_elements{10}, init);
+    auto const& cv = v;
+
+    THEN("begin() and end() iterate through all values")
+    {
+      CHECK(std::equal(v.begin(), v.end(), begin(init), end(init)));
+      CHECK(std::equal(v.cbegin(), v.cend(), begin(init), end(init)));
+      CHECK(std::equal(cv.begin(), cv.end(), begin(init), end(init)));
+      CHECK(std::equal(cv.cbegin(), cv.cend(), begin(init), end(init)));
+    }
+
+    THEN("rbegin() and rend() iterate through all values in reverse order")
+    {
+      CHECK(std::equal(v.rbegin(), v.rend(), rbegin(init), rend(init)));
+      CHECK(std::equal(v.crbegin(), v.crend(), rbegin(init), rend(init)));
+      CHECK(std::equal(cv.rbegin(), cv.rend(), rbegin(init), rend(init)));
+      CHECK(std::equal(cv.crbegin(), cv.crend(), rbegin(init), rend(init)));
+    }
+  }
+}
+
 TEST_CASE("pinned_vector singular iterators compare equal", "[pinned_vector][iterator]")
 {
   GIVEN("default constructed iterators")
