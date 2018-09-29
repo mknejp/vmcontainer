@@ -10,8 +10,7 @@
 
 #include <type_traits>
 
-using namespace mknejp::vmcontainer;
-using namespace detail;
+using namespace mknejp::vmcontainer::detail;
 
 ///////////////////////////////////////////////////////////////////////////////
 // value_init_when_moved_from
