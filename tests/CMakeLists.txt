@@ -8,6 +8,7 @@ add_executable(
   instantiations.cpp
   main.cpp
   pinned_vector/cons.cpp
+  pinned_vector/contiguous.cpp
   pinned_vector/iterators.cpp
   vm/page_stack.cpp
   vm/reservation.cpp

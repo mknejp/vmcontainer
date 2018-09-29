@@ -379,7 +379,7 @@ public:
   auto emplace_back(Args&&... args) -> typename std::enable_if<std::is_constructible<T, Args&&...>::value, T&>::type
   {
     grow_if_necessary(1);
-    construct_at(_end, std::forward<Args>(args)...);
+    construct_at(_end.value, std::forward<Args>(args)...);
     return *_end++;
   }
   auto pop_back() -> void
