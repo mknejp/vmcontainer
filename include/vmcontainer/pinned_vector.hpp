@@ -59,20 +59,25 @@ public:
   explicit pinned_vector_impl(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
   explicit pinned_vector_impl(num_pages max_size) : _storage(max_size) {}
 
-  pinned_vector_impl(num_bytes max_size, std::initializer_list<T> init) : _storage(max_size) { insert(end(), init); }
-  pinned_vector_impl(num_elements max_size, std::initializer_list<T> init)
-    : _storage(num_bytes{max_size.count * sizeof(T)})
+  pinned_vector_impl(num_bytes max_size, std::initializer_list<T> init) : pinned_vector_impl(max_size)
   {
     insert(end(), init);
   }
-  pinned_vector_impl(num_pages max_size, std::initializer_list<T> init) : _storage(max_size) { insert(end(), init); }
+  pinned_vector_impl(num_elements max_size, std::initializer_list<T> init) : pinned_vector_impl(max_size)
+  {
+    insert(end(), init);
+  }
+  pinned_vector_impl(num_pages max_size, std::initializer_list<T> init) : pinned_vector_impl(max_size)
+  {
+    insert(end(), init);
+  }
 
   template<typename InputIter,
            typename = typename std::enable_if<
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector_impl(num_bytes max_size, InputIter first, InputIter last) : _storage(max_size)
+  pinned_vector_impl(num_bytes max_size, InputIter first, InputIter last) : pinned_vector_impl(max_size)
   {
     insert(end(), first, last);
   }
@@ -81,8 +86,7 @@ public:
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector_impl(num_elements max_size, InputIter first, InputIter last)
-    : _storage(num_bytes{max_size.count * sizeof(T)})
+  pinned_vector_impl(num_elements max_size, InputIter first, InputIter last) : pinned_vector_impl(max_size)
   {
     insert(end(), first, last);
   }
@@ -91,31 +95,30 @@ public:
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector_impl(num_pages max_size, InputIter first, InputIter last) : _storage(max_size)
+  pinned_vector_impl(num_pages max_size, InputIter first, InputIter last) : pinned_vector_impl(max_size)
   {
     insert(end(), first, last);
   }
 
-  pinned_vector_impl(num_bytes max_size, size_type count, T const& value) : _storage(max_size)
+  pinned_vector_impl(num_bytes max_size, size_type count, T const& value) : pinned_vector_impl(max_size)
   {
     insert(end(), count, value);
   }
-  pinned_vector_impl(num_elements max_size, size_type count, T const& value)
-    : _storage(num_bytes{max_size.count * sizeof(T)})
+  pinned_vector_impl(num_elements max_size, size_type count, T const& value) : pinned_vector_impl(max_size)
   {
     insert(end(), count, value);
   }
-  pinned_vector_impl(num_pages max_size, size_type count, T const& value) : _storage(max_size)
+  pinned_vector_impl(num_pages max_size, size_type count, T const& value) : pinned_vector_impl(max_size)
   {
     insert(end(), count, value);
   }
 
-  pinned_vector_impl(num_bytes max_size, size_type count) : _storage(max_size) { insert(end(), count, T{}); }
-  pinned_vector_impl(num_elements max_size, size_type count) : _storage(num_bytes{max_size.count * sizeof(T)})
+  pinned_vector_impl(num_bytes max_size, size_type count) : pinned_vector_impl(max_size) { insert(end(), count, T{}); }
+  pinned_vector_impl(num_elements max_size, size_type count) : pinned_vector_impl(max_size)
   {
     insert(end(), count, T{});
   }
-  pinned_vector_impl(num_pages max_size, size_type count) : _storage(max_size) { insert(end(), count, T{}); }
+  pinned_vector_impl(num_pages max_size, size_type count) : pinned_vector_impl(max_size) { insert(end(), count, T{}); }
 
   // Special members
   pinned_vector_impl(pinned_vector_impl const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
