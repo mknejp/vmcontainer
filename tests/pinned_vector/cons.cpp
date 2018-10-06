@@ -39,38 +39,38 @@ TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector
   CHECK(std::equal(v.begin(), v.end(), init.begin(), init.end()));
 }
 
-TEST_CASE("pinned_vector construction from an iterator pair")
+TEST_CASE("pinned_vector construction from an iterator pair", "[pinned_vector][cons]")
 {
-  auto test = [](std::size_t n, auto first, auto last, auto expected_first, auto expected_last) {
-    auto v = pinned_vector<int>(num_elements{n}, first, last);
-    CHECK(v.size() == n);
+  auto test = [](auto first, auto last, auto expected) {
+    auto v = pinned_vector<int>(num_elements{expected.size()}, first, last);
+    CHECK(v.size() == expected.size());
     CHECK(v.empty() == false);
-    CHECK(std::equal(v.begin(), v.end(), expected_first, expected_last));
+    CHECK(std::equal(v.begin(), v.end(), begin(expected), end(expected)));
   };
   auto const expected = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   SECTION("input iterator")
   {
     auto init = std::istringstream("0 1 2 3 4 5 6 7 8 9");
-    test(10, std::istream_iterator<int>(init), std::istream_iterator<int>(), expected.begin(), expected.end());
+    test(std::istream_iterator<int>(init), std::istream_iterator<int>(), expected);
   }
   SECTION("forward iterator")
   {
     auto init = std::forward_list<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    test(10, init.begin(), init.end(), expected.begin(), expected.end());
+    test(begin(init), end(init), expected);
   }
   SECTION("bidirectional iterator")
   {
     auto init = std::list<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    test(10, init.begin(), init.end(), expected.begin(), expected.end());
+    test(begin(init), end(init), expected);
   }
   SECTION("random access iterator")
   {
     auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    test(10, init.begin(), init.end(), expected.begin(), expected.end());
+    test(begin(init), end(init), expected);
   }
 }
 
-TEST_CASE("pinned_vector construction from a count and value")
+TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][cons]")
 {
   auto v = pinned_vector<int>(num_elements{10}, 10, 5);
 
@@ -80,7 +80,7 @@ TEST_CASE("pinned_vector construction from a count and value")
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 5; }));
 }
 
-TEST_CASE("pinned_vector construction from a count")
+TEST_CASE("pinned_vector construction from a count", "[pinned_vector][cons]")
 {
   auto v = pinned_vector<int>(num_elements{10}, 10);
 
@@ -90,7 +90,7 @@ TEST_CASE("pinned_vector construction from a count")
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
 }
 
-TEST_CASE("pinned_vector copy construction")
+TEST_CASE("pinned_vector copy construction", "[pinned_vector][cons]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto b = a;
@@ -100,7 +100,7 @@ TEST_CASE("pinned_vector copy construction")
   CHECK(std::equal(a.begin(), a.end(), b.begin(), b.end()));
 }
 
-TEST_CASE("pinned_vector move construction")
+TEST_CASE("pinned_vector move construction", "[pinned_vector][cons]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto first = a.begin();
