@@ -19,16 +19,27 @@ namespace mknejp
 {
   namespace vmcontainer
   {
-    template<typename T, typename VirtualMemoryPageStack = vm::page_stack>
+    struct pinned_vector_traits;
+
+    template<typename T, typename Traits = pinned_vector_traits>
     class pinned_vector;
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// pinned_vector_traits
+//
+
+struct mknejp::vmcontainer::pinned_vector_traits
+{
+  using page_stack = vm::page_stack;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // pinned_vector
 //
 
-template<typename T, typename VirtualMemoryPageStack>
+template<typename T, typename Traits>
 class mknejp::vmcontainer::pinned_vector
 {
 public:
@@ -477,6 +488,6 @@ private:
   auto to_pointer(const_iterator it) const noexcept -> T const* { return data() + (it - cbegin()); }
   auto to_pointer(const_iterator it) noexcept -> T* { return data() + (it - cbegin()); }
 
-  VirtualMemoryPageStack _storage;
+  typename Traits::page_stack _storage;
   detail::value_init_when_moved_from<T*> _end = data();
 };
