@@ -151,6 +151,17 @@ TEST_CASE("pinned_vector copy construction", "[pinned_vector][cons]")
   CHECK(std::equal(a.begin(), a.end(), b.begin(), b.end()));
 }
 
+TEST_CASE("pinned_vector copy assignment", "[pinned_vector][cons]")
+{
+  auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto b = pinned_vector<int>();
+  b = a;
+
+  CHECK(a.size() == b.size());
+  CHECK(a.empty() == b.empty());
+  CHECK(std::equal(a.begin(), a.end(), b.begin(), b.end()));
+}
+
 TEST_CASE("pinned_vector move construction", "[pinned_vector][cons]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
@@ -158,6 +169,23 @@ TEST_CASE("pinned_vector move construction", "[pinned_vector][cons]")
   auto last = a.end();
 
   auto b = std::move(a);
+
+  CHECK(a.size() == 0);
+  CHECK(b.size() == 10);
+  CHECK(a.empty() == true);
+  CHECK(b.empty() == false);
+  CHECK(b.begin() == first);
+  CHECK(b.end() == last);
+}
+
+TEST_CASE("pinned_vector move assignment", "[pinned_vector][cons]")
+{
+  auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto first = a.begin();
+  auto last = a.end();
+
+  auto b = pinned_vector<int>();
+  b = std::move(a);
 
   CHECK(a.size() == 0);
   CHECK(b.size() == 10);
