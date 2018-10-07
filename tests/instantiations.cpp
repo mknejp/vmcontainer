@@ -47,7 +47,7 @@ template<typename T>
 static void required_functions()
 {
   // ctor
-  pinned_vector<T> a(num_bytes{100});
+  auto a = pinned_vector<T>(num_bytes{100});
   // move ctor
   auto b = std::move(a);
   // move assign

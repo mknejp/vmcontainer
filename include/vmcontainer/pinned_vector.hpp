@@ -19,23 +19,17 @@ namespace mknejp
 {
   namespace vmcontainer
   {
-    template<typename T>
+    template<typename T, typename VirtualMemoryPageStack = vm::page_stack>
     class pinned_vector;
-
-    namespace detail
-    {
-      template<typename T, typename VirtualMemoryPageStack>
-      class pinned_vector_impl;
-    }
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// pinned_vector_impl
+// pinned_vector
 //
 
 template<typename T, typename VirtualMemoryPageStack>
-class mknejp::vmcontainer::detail::pinned_vector_impl
+class mknejp::vmcontainer::pinned_vector
 {
 public:
   static_assert(std::is_destructible<T>::value, "value_type must satisfy Destructible concept");
@@ -54,30 +48,21 @@ public:
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
   // constructors
-  pinned_vector_impl() = default;
-  explicit pinned_vector_impl(num_bytes max_size) : _storage(max_size) {}
-  explicit pinned_vector_impl(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
-  explicit pinned_vector_impl(num_pages max_size) : _storage(max_size) {}
+  pinned_vector() = default;
+  explicit pinned_vector(num_bytes max_size) : _storage(max_size) {}
+  explicit pinned_vector(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
+  explicit pinned_vector(num_pages max_size) : _storage(max_size) {}
 
-  pinned_vector_impl(num_bytes max_size, std::initializer_list<T> init) : pinned_vector_impl(max_size)
-  {
-    insert(end(), init);
-  }
-  pinned_vector_impl(num_elements max_size, std::initializer_list<T> init) : pinned_vector_impl(max_size)
-  {
-    insert(end(), init);
-  }
-  pinned_vector_impl(num_pages max_size, std::initializer_list<T> init) : pinned_vector_impl(max_size)
-  {
-    insert(end(), init);
-  }
+  pinned_vector(num_bytes max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
+  pinned_vector(num_elements max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
+  pinned_vector(num_pages max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
 
   template<typename InputIter,
            typename = typename std::enable_if<
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector_impl(num_bytes max_size, InputIter first, InputIter last) : pinned_vector_impl(max_size)
+  pinned_vector(num_bytes max_size, InputIter first, InputIter last) : pinned_vector(max_size)
   {
     insert(end(), first, last);
   }
@@ -86,7 +71,7 @@ public:
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector_impl(num_elements max_size, InputIter first, InputIter last) : pinned_vector_impl(max_size)
+  pinned_vector(num_elements max_size, InputIter first, InputIter last) : pinned_vector(max_size)
   {
     insert(end(), first, last);
   }
@@ -95,49 +80,46 @@ public:
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector_impl(num_pages max_size, InputIter first, InputIter last) : pinned_vector_impl(max_size)
+  pinned_vector(num_pages max_size, InputIter first, InputIter last) : pinned_vector(max_size)
   {
     insert(end(), first, last);
   }
 
-  pinned_vector_impl(num_bytes max_size, size_type count, T const& value) : pinned_vector_impl(max_size)
+  pinned_vector(num_bytes max_size, size_type count, T const& value) : pinned_vector(max_size)
   {
     insert(end(), count, value);
   }
-  pinned_vector_impl(num_elements max_size, size_type count, T const& value) : pinned_vector_impl(max_size)
+  pinned_vector(num_elements max_size, size_type count, T const& value) : pinned_vector(max_size)
   {
     insert(end(), count, value);
   }
-  pinned_vector_impl(num_pages max_size, size_type count, T const& value) : pinned_vector_impl(max_size)
+  pinned_vector(num_pages max_size, size_type count, T const& value) : pinned_vector(max_size)
   {
     insert(end(), count, value);
   }
 
-  pinned_vector_impl(num_bytes max_size, size_type count) : pinned_vector_impl(max_size) { insert(end(), count, T{}); }
-  pinned_vector_impl(num_elements max_size, size_type count) : pinned_vector_impl(max_size)
-  {
-    insert(end(), count, T{});
-  }
-  pinned_vector_impl(num_pages max_size, size_type count) : pinned_vector_impl(max_size) { insert(end(), count, T{}); }
+  pinned_vector(num_bytes max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
+  pinned_vector(num_elements max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
+  pinned_vector(num_pages max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
 
   // Special members
-  pinned_vector_impl(pinned_vector_impl const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
+  pinned_vector(pinned_vector const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
   {
     _storage.commit(other.size() * sizeof(T));
-    _end = uninitialized_copy(other.cbegin(), other.cend(), data());
+    _end = detail::uninitialized_copy(other.cbegin(), other.cend(), data());
   }
-  pinned_vector_impl(pinned_vector_impl&& other) = default;
-  pinned_vector_impl& operator=(pinned_vector_impl const& other) &
+  pinned_vector(pinned_vector&& other) = default;
+  pinned_vector& operator=(pinned_vector const& other) &
   {
     if(this != std::addressof(other))
     {
-      *this = pinned_vector_impl(other);
+      *this = pinned_vector(other);
     }
     return *this;
   }
-  pinned_vector_impl& operator=(pinned_vector_impl&& other) = default;
+  pinned_vector& operator=(pinned_vector&& other) = default;
 
-  ~pinned_vector_impl() { clear(); }
+  ~pinned_vector() { clear(); }
 
   // Assign
   auto assign(std::size_t count, T const& value) -> void
@@ -257,7 +239,7 @@ public:
 
   auto clear() noexcept -> void
   {
-    destroy(begin(), end());
+    detail::destroy(begin(), end());
     _end = data();
   }
   auto insert(const_iterator pos, T const& value) ->
@@ -316,7 +298,7 @@ private:
       grow_if_necessary(count);
       if(p != _end)
       {
-        uninitialized_move(_end - count, _end.value, _end.value);
+        detail::uninitialized_move(_end - count, _end.value, _end.value);
         auto const rest = _end - p - count;
         std::move_backward(p, p + rest, _end - rest);
       }
@@ -344,11 +326,11 @@ public:
     auto* p = to_pointer(pos);
     if(p != _end)
     {
-      uninitialized_move(_end - 1, _end.value, _end.value);
+      detail::uninitialized_move(_end - 1, _end.value, _end.value);
       std::move_backward(p, _end - 1, p + 1);
-      destroy_at(p);
+      detail::destroy_at(p);
     }
-    auto* x = construct_at(p, std::forward<Args>(args)...);
+    auto* x = detail::construct_at(p, std::forward<Args>(args)...);
     ++_end;
     return *x;
   }
@@ -356,7 +338,7 @@ public:
   {
     assert(is_valid_iterator(pos));
     std::move(to_iterator(pos) + 1, end(), to_iterator(pos));
-    destroy_at(--_end);
+    detail::destroy_at(--_end);
     return pos;
   }
   auto erase(const_iterator first, const_iterator last) -> iterator
@@ -364,7 +346,7 @@ public:
     assert(is_valid_last_iterator(last));
     assert(first <= last);
     std::move(to_iterator(last), end(), to_iterator(first));
-    destroy(to_iterator(last), end());
+    detail::destroy(to_iterator(last), end());
     _end = to_pointer(last);
     return last;
   }
@@ -382,13 +364,13 @@ public:
   auto emplace_back(Args&&... args) -> typename std::enable_if<std::is_constructible<T, Args&&...>::value, T&>::type
   {
     grow_if_necessary(1);
-    construct_at(_end.value, std::forward<Args>(args)...);
+    detail::construct_at(_end.value, std::forward<Args>(args)...);
     return *_end++;
   }
   auto pop_back() -> void
   {
     assert(!empty());
-    destroy_at(--_end);
+    detail::destroy_at(--_end);
   }
   auto resize(size_type count) -> void
   {
@@ -396,13 +378,13 @@ public:
     {
       auto const delta = count - size();
       reserve(count);
-      uninitialized_default_construct_n(_end, delta);
+      detail::uninitialized_default_construct_n(_end, delta);
       _end += delta;
     }
     else if(count < size())
     {
       auto const delta = size() - count;
-      destroy(_end - delta, _end.value);
+      detail::destroy(_end - delta, _end.value);
       _end -= delta;
       shrink_to_fit();
     }
@@ -414,23 +396,25 @@ public:
     {
       reserve(count);
       auto const delta = count - old_size;
-      uninitialized_fill_n(_end, _end + delta, value);
+      detail::uninitialized_fill_n(_end, _end + delta, value);
       _end += delta;
     }
     else if(count < old_size)
     {
       auto const delta = old_size - count;
-      destroy(_end - delta, _end);
+      detail::destroy(_end - delta, _end);
       _end -= delta;
       shrink_to_fit();
     }
   }
-  auto swap(pinned_vector_impl& other) noexcept -> void
+  auto swap(pinned_vector& other) noexcept -> void
   {
     using std::swap;
     swap(_storage, other._storage);
     swap(_end, other._end);
   }
+
+  friend auto swap(pinned_vector& lhs, pinned_vector& rhs) noexcept -> void { lhs.swap(rhs); }
 
   template<typename U = T, typename = decltype(std::declval<U const&>() == std::declval<U const&>())>
   friend auto operator==(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
@@ -489,18 +473,5 @@ private:
   auto to_pointer(const_iterator it) noexcept -> T* { return data() + (it - cbegin()); }
 
   VirtualMemoryPageStack _storage;
-  value_init_when_moved_from<T*> _end = data();
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// pinned_vector
-//
-
-template<typename T>
-class mknejp::vmcontainer::pinned_vector : public detail::pinned_vector_impl<T, vm::page_stack>
-{
-public:
-  using detail::pinned_vector_impl<T, vm::page_stack>::pinned_vector_impl;
-
-  friend void swap(pinned_vector& lhs, pinned_vector& rhs) noexcept { lhs.swap(rhs); }
+  detail::value_init_when_moved_from<T*> _end = data();
 };
