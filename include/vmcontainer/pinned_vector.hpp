@@ -13,6 +13,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <iterator>
+#include <ratio>
 #include <type_traits>
 
 namespace mknejp
@@ -33,6 +34,7 @@ namespace mknejp
 struct mknejp::vmcontainer::pinned_vector_traits
 {
   using page_stack = vm::page_stack;
+  using growth_factor = std::ratio<2, 1>;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,6 +46,8 @@ class mknejp::vmcontainer::pinned_vector
 {
 public:
   static_assert(std::is_destructible<T>::value, "value_type must satisfy Destructible concept");
+  static_assert(std::ratio_greater<typename Traits::growth_factor, std::ratio<1, 1>>::value,
+                "growth factor must be greater than 1");
 
   using value_type = T;
   using size_type = std::size_t;
@@ -464,14 +468,14 @@ public:
   }
 
 private:
-  static constexpr std::size_t growth_factor = 2;
-
   auto grow_if_necessary(std::size_t n) -> void
   {
+    assert(max_size() - size() >= n);
     auto const new_size = size() + n;
     if(new_size > capacity())
     {
-      reserve(std::max(std::min(capacity() * growth_factor, max_size()), new_size));
+      auto const new_cap = capacity() * Traits::growth_factor::num / Traits::growth_factor::den;
+      reserve(std::min(max_size(), std::max(new_cap, new_size)));
     }
   }
 
