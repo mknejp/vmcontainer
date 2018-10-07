@@ -76,7 +76,7 @@ auto mknejp::vmcontainer::vm::commit(void* offset, std::size_t num_bytes) -> voi
 auto mknejp::vmcontainer::vm::decommit(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
-  auto const result = ::VirtualFree(offset, 0, MEM_DECOMMIT);
+  auto const result = ::VirtualFree(offset, num_bytes, MEM_DECOMMIT);
   (void)result;
   assert(result != 0);
 #else
