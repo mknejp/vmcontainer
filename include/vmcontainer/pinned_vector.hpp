@@ -117,7 +117,7 @@ public:
     }
     return *this;
   }
-  pinned_vector& operator=(pinned_vector&& other) = default;
+  pinned_vector& operator=(pinned_vector&& other) & = default;
 
   ~pinned_vector() { clear(); }
 

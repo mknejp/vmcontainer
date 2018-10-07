@@ -70,8 +70,8 @@ struct mknejp::vmcontainer::detail::value_init_when_moved_from
   /*implicit*/ value_init_when_moved_from(T value) noexcept : value(value) {}
   value_init_when_moved_from(value_init_when_moved_from const& other) = default;
   value_init_when_moved_from(value_init_when_moved_from&& other) noexcept : value(other.value) { other.value = T{}; }
-  value_init_when_moved_from& operator=(value_init_when_moved_from const& other) = default;
-  value_init_when_moved_from& operator=(value_init_when_moved_from&& other) noexcept
+  value_init_when_moved_from& operator=(value_init_when_moved_from const& other) & = default;
+  value_init_when_moved_from& operator=(value_init_when_moved_from&& other) & noexcept
   {
     auto temp = other.value;
     other.value = T{};
