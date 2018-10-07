@@ -118,6 +118,11 @@ public:
     return *this;
   }
   pinned_vector& operator=(pinned_vector&& other) & = default;
+  pinned_vector& operator=(std::initializer_list<T> init) &
+  {
+    assign(init);
+    return *this;
+  }
 
   ~pinned_vector() { clear(); }
 

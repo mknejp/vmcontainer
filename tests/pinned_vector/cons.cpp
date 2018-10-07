@@ -250,3 +250,18 @@ TEST_CASE("pinned_vector assign() with a count and value", "[pinned_vector][cons
   CHECK(std::distance(v.begin(), v.end()) == 5);
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 6; }));
 }
+
+TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_vector][cons]")
+{
+  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+
+  v = {10, 11, 12, 13, 14};
+
+  CHECK(v.size() == 5);
+  CHECK(v.empty() == false);
+  CHECK(v[0] == 10);
+  CHECK(v[1] == 11);
+  CHECK(v[2] == 12);
+  CHECK(v[3] == 13);
+  CHECK(v[4] == 14);
+}
