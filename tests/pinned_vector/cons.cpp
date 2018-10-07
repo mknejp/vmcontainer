@@ -29,6 +29,57 @@ TEST_CASE("a default constructed pinned_vector is empty", "[pinned_vector][cons]
   CHECK(v.capacity() == 0);
 }
 
+TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_vector][cons]")
+{
+  SECTION("num_elements")
+  {
+    auto v = pinned_vector<int>(num_elements{12345});
+
+    auto page_size = vm::default_vm_traits::page_size();
+    // rounded up to page size
+    REQUIRE(page_size > 0);
+    CAPTURE(page_size);
+    auto max_size = (((sizeof(int) * 12345 + page_size - 1) / page_size) * page_size) / sizeof(int);
+
+    CHECK(v.capacity() == 0);
+    CHECK(v.size() == 0);
+    CHECK(v.empty() == true);
+    CHECK(v.max_size() == max_size);
+    CHECK(v.page_size() == page_size);
+  }
+  SECTION("num_bytes")
+  {
+    auto v = pinned_vector<int>(num_bytes{12345});
+
+    auto page_size = vm::default_vm_traits::page_size();
+    // rounded up to page size
+    REQUIRE(page_size > 0);
+    CAPTURE(page_size);
+    auto max_size = (((12345 + page_size - 1) / page_size) * page_size) / sizeof(int);
+
+    CHECK(v.capacity() == 0);
+    CHECK(v.size() == 0);
+    CHECK(v.empty() == true);
+    CHECK(v.max_size() == max_size);
+    CHECK(v.page_size() == page_size);
+  }
+  SECTION("num_pages")
+  {
+    auto v = pinned_vector<int>(num_pages{10});
+
+    auto page_size = vm::default_vm_traits::page_size();
+    REQUIRE(page_size > 0);
+    CAPTURE(page_size);
+    auto max_size = 10 * page_size / sizeof(int);
+
+    CHECK(v.capacity() == 0);
+    CHECK(v.size() == 0);
+    CHECK(v.empty() == true);
+    CHECK(v.max_size() == max_size);
+    CHECK(v.page_size() == page_size);
+  }
+}
+
 TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector][cons]")
 {
   auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
