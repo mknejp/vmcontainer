@@ -248,7 +248,7 @@ public:
   {
     if(capacity() > size())
     {
-      _storage.decommit((capacity() - size()) * sizeof(T));
+      _storage.decommit(_storage.committed_bytes() - size() * sizeof(T));
     }
   }
   auto page_size() const noexcept -> std::size_t { return _storage.page_size(); }
