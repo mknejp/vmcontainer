@@ -434,39 +434,6 @@ public:
     swap(_end, other._end);
   }
 
-  friend auto swap(pinned_vector& lhs, pinned_vector& rhs) noexcept -> void { lhs.swap(rhs); }
-
-  template<typename U = T, typename = decltype(std::declval<U const&>() == std::declval<U const&>())>
-  friend auto operator==(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
-  {
-    return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
-  }
-  template<typename U = T, typename = decltype(std::declval<U const&>() == std::declval<U const&>())>
-  friend auto operator!=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
-  {
-    return !(lhs == rhs);
-  }
-  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
-  friend auto operator<(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
-  {
-    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
-  }
-  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
-  friend auto operator>(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
-  {
-    return rhs < lhs;
-  }
-  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
-  friend auto operator<=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
-  {
-    return !(rhs < lhs);
-  }
-  template<typename U = T, typename = decltype(std::declval<U const&>() < std::declval<U const&>())>
-  friend auto operator>=(pinned_vector<T> const& lhs, pinned_vector<T> const& rhs) -> bool
-  {
-    return !(lhs < rhs);
-  }
-
 private:
   auto grow_if_necessary(std::size_t n) -> void
   {
@@ -495,3 +462,46 @@ private:
   typename Traits::page_stack _storage;
   detail::value_init_when_moved_from<T*> _end = data();
 };
+
+namespace mknejp
+{
+  namespace vmcontainer
+  {
+    template<typename T, typename Traits>
+    auto swap(pinned_vector<T, Traits>& lhs, pinned_vector<T, Traits>& rhs) noexcept -> void
+    {
+      lhs.swap(rhs);
+    }
+
+    template<typename T, typename Traits, typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+    auto operator==(pinned_vector<T, Traits> const& lhs, pinned_vector<T, Traits> const& rhs) -> bool
+    {
+      return lhs.size() == rhs.size() && std::equal(lhs.begin(), lhs.end(), rhs.begin());
+    }
+    template<typename T, typename Traits, typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+    auto operator!=(pinned_vector<T, Traits> const& lhs, pinned_vector<T, Traits> const& rhs) -> bool
+    {
+      return !(lhs == rhs);
+    }
+    template<typename T, typename Traits, typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+    auto operator<(pinned_vector<T, Traits> const& lhs, pinned_vector<T, Traits> const& rhs) -> bool
+    {
+      return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    }
+    template<typename T, typename Traits, typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+    auto operator>(pinned_vector<T, Traits> const& lhs, pinned_vector<T, Traits> const& rhs) -> bool
+    {
+      return rhs < lhs;
+    }
+    template<typename T, typename Traits, typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+    auto operator<=(pinned_vector<T, Traits> const& lhs, pinned_vector<T, Traits> const& rhs) -> bool
+    {
+      return !(rhs < lhs);
+    }
+    template<typename T, typename Traits, typename = decltype(std::declval<T const&>() == std::declval<T const&>())>
+    auto operator>=(pinned_vector<T, Traits> const& lhs, pinned_vector<T, Traits> const& rhs) -> bool
+    {
+      return !(lhs < rhs);
+    }
+  }
+}
