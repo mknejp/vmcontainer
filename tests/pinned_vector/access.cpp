@@ -12,7 +12,7 @@
 
 using namespace mknejp::vmcontainer;
 
-TEST_CASE("pinned_vector::at", "[pinned_vector][access]")
+TEST_CASE("pinned_vector::at()", "[pinned_vector][access]")
 {
   auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
@@ -44,7 +44,7 @@ TEST_CASE("pinned_vector::at", "[pinned_vector][access]")
   }
 }
 
-TEST_CASE("pinned_vector::operator[]", "[pinned_vector][access]")
+TEST_CASE("pinned_vector::operator[]()", "[pinned_vector][access]")
 {
   auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
@@ -66,7 +66,7 @@ TEST_CASE("pinned_vector::operator[]", "[pinned_vector][access]")
   }
 }
 
-TEST_CASE("pinned_vector::front", "[pinned_vector][access]")
+TEST_CASE("pinned_vector::front()", "[pinned_vector][access]")
 {
   auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
@@ -81,7 +81,7 @@ TEST_CASE("pinned_vector::front", "[pinned_vector][access]")
   static_assert(std::is_same<decltype(cr), int const&>::value, "");
 }
 
-TEST_CASE("pinned_vector::back", "[pinned_vector][access]")
+TEST_CASE("pinned_vector::back()", "[pinned_vector][access]")
 {
   auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
@@ -96,7 +96,7 @@ TEST_CASE("pinned_vector::back", "[pinned_vector][access]")
   static_assert(std::is_same<decltype(cr), int const&>::value, "");
 }
 
-TEST_CASE("pinned_vector::data", "[pinned_vector][access]")
+TEST_CASE("pinned_vector::data()", "[pinned_vector][access]")
 {
   auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;

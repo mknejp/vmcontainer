@@ -4,7 +4,7 @@
 // (See accompanying file LICENSE.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 //
 
-#include "vmcontainer/pinned_vector.hpp"
+#include "pinned_vector_test.hpp"
 
 #include "catch.hpp"
 
@@ -15,6 +15,7 @@
 #include <type_traits>
 
 using namespace mknejp::vmcontainer;
+using namespace vmcontainer_test;
 
 static auto round_up(std::size_t bytes, std::size_t page_size)
 {
@@ -187,34 +188,26 @@ TEST_CASE("pinned_vector copy assignment", "[pinned_vector][special]")
 TEST_CASE("pinned_vector move construction", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
-  auto first = a.begin();
-  auto last = a.end();
+  auto a_state = capture_value_state(a);
 
   auto b = std::move(a);
 
-  CHECK(a.size() == 0);
-  CHECK(b.size() == 10);
-  CHECK(a.empty() == true);
-  CHECK(b.empty() == false);
-  CHECK(b.begin() == first);
-  CHECK(b.end() == last);
+  REQUIRE(a.size() == 0);
+  REQUIRE(a.empty() == true);
+  REQUIRE(capture_value_state(b) == a_state);
 }
 
 TEST_CASE("pinned_vector move assignment", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
-  auto first = a.begin();
-  auto last = a.end();
+  auto a_state = capture_value_state(a);
 
   auto b = pinned_vector<int>();
   b = std::move(a);
 
-  CHECK(a.size() == 0);
-  CHECK(b.size() == 10);
-  CHECK(a.empty() == true);
-  CHECK(b.empty() == false);
-  CHECK(b.begin() == first);
-  CHECK(b.end() == last);
+  REQUIRE(a.size() == 0);
+  REQUIRE(a.empty() == true);
+  REQUIRE(capture_value_state(b) == a_state);
 }
 
 TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_vector][special]")
@@ -240,10 +233,8 @@ TEST_CASE("pinned_vector::swap()", "[pinned_vector][special]")
   auto a = pinned_vector<int>(num_elements{5}, init_a);
   auto b = pinned_vector<int>(num_elements{4}, init_b);
 
-  auto a_begin = a.begin();
-  auto b_begin = b.begin();
-  auto a_end = a.end();
-  auto b_end = b.end();
+  auto a_state = capture_value_state(a);
+  auto b_state = capture_value_state(b);
 
   REQUIRE(a.size() == 5);
   REQUIRE(b.size() == 4);
@@ -251,20 +242,16 @@ TEST_CASE("pinned_vector::swap()", "[pinned_vector][special]")
   SECTION("free swap()")
   {
     swap(a, b);
-    static_assert(noexcept(swap(a, b)), "pinned_vector swap() is not noexcept");
+    static_assert(noexcept(swap(a, b)), "pinned_vector swap() is noexcept");
   }
   SECTION("member swap()")
   {
     a.swap(b);
-    static_assert(noexcept(a.swap(b)), "pinned_vector swap() is not noexcept");
+    static_assert(noexcept(a.swap(b)), "pinned_vector swap() is noexcept");
   }
 
-  REQUIRE(a.size() == 4);
-  REQUIRE(b.size() == 5);
-  REQUIRE(a.begin() == b_begin);
-  REQUIRE(b.begin() == a_begin);
-  REQUIRE(a.end() == b_end);
-  REQUIRE(b.end() == a_end);
+  REQUIRE(capture_value_state(a) == b_state);
+  REQUIRE(capture_value_state(b) == a_state);
 
   REQUIRE(std::equal(a.begin(), a.end(), begin(init_b), end(init_b)));
   REQUIRE(std::equal(b.begin(), b.end(), begin(init_a), end(init_a)));

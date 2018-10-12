@@ -122,6 +122,22 @@ TEST_CASE("pinned_vector::shrink_to_fit() reduces capacity to current size round
   CHECK(v.capacity() == 0);
 }
 
+TEST_CASE("pinned_vector::shrink_to_fit() does not change iterators", "[pinned_vector][capacity]")
+{
+  auto v = pinned_vector<int>(num_pages{2}, {1});
+  auto page_size = v.page_size();
+  REQUIRE(page_size > 0);
+  CAPTURE(page_size);
+
+  auto state = capture_value_state(v);
+  v.reserve(2 * page_size / sizeof(int));
+  REQUIRE(capture_value_state(v) == state);
+
+  state = capture_value_state(v);
+  v.shrink_to_fit();
+  REQUIRE(capture_value_state(v) == state);
+}
+
 TEST_CASE("pinned_vector::empty()", "[pinned_vector][capacity]")
 {
   auto v = pinned_vector<int>(num_elements{10});
@@ -181,14 +197,17 @@ TEST_CASE("pinned_vector::resize() without a default value", "[pinned_vector][ca
   v.resize(10);
   REQUIRE(v.size() == 10);
   REQUIRE(v.capacity() >= 10);
+  REQUIRE(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
 
   v.resize(20);
   REQUIRE(v.size() == 20);
   REQUIRE(v.capacity() >= 20);
+  REQUIRE(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
 
   v.resize(15);
   REQUIRE(v.size() == 15);
   REQUIRE(v.capacity() >= 20);
+  REQUIRE(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
 }
 
 TEST_CASE("pinned_vector::resize() with a default value", "[pinned_vector][capacity]")
@@ -219,6 +238,29 @@ TEST_CASE("pinned_vector::resize() with a default value", "[pinned_vector][capac
   REQUIRE(std::all_of(v.begin(), v.begin() + 10, [](int x) { return x == 0; }));
   REQUIRE(std::all_of(v.begin() + 10, v.begin() + 15, [](int x) { return x == 1; }));
   REQUIRE(std::all_of(v.begin() + 15, v.begin() + 30, [](int x) { return x == 3; }));
+}
+
+TEST_CASE("pinned_vector::resize() does not move the memory buffer", "[pinned_vector][capacity]")
+{
+  auto v = pinned_vector<int>(num_elements{12345});
+  auto data = v.data();
+  auto begin = v.begin();
+
+  v.resize(10);
+  REQUIRE(v.data() == data);
+  REQUIRE(v.begin() == begin);
+
+  v.resize(20);
+  REQUIRE(v.data() == data);
+  REQUIRE(v.begin() == begin);
+
+  v.resize(15, 3);
+  REQUIRE(v.data() == data);
+  REQUIRE(v.begin() == begin);
+
+  v.resize(30);
+  REQUIRE(v.data() == data);
+  REQUIRE(v.begin() == begin);
 }
 
 TEST_CASE("pinned_vector::resize() has strong exception guarantee if committing new memory fails",
