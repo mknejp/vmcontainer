@@ -10,6 +10,7 @@ add_executable(
 
   pinned_vector/access.cpp
   pinned_vector/assign.cpp
+  pinned_vector/capacity.cpp
   pinned_vector/cons.cpp
   pinned_vector/contiguous.cpp
   pinned_vector/iterators.cpp

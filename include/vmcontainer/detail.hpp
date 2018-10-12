@@ -180,7 +180,7 @@ auto mknejp::vmcontainer::detail::uninitialized_move_n(InputIt first, std::size_
   auto current = d_first;
   try
   {
-    for(std::size_t i = 0; i < count; ++first, (void)++current)
+    for(std::size_t i = 0; i < count; ++first, (void)++current, ++i)
     {
       construct_at(std::addressof(*current), std::move(*first));
     }

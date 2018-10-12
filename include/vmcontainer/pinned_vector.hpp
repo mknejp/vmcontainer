@@ -416,13 +416,13 @@ public:
     {
       reserve(count);
       auto const delta = count - old_size;
-      detail::uninitialized_fill_n(_end, _end + delta, value);
+      detail::uninitialized_fill_n(_end, count, value);
       _end += delta;
     }
     else if(count < old_size)
     {
       auto const delta = old_size - count;
-      detail::destroy(_end - delta, _end);
+      detail::destroy(_end - delta, _end.value);
       _end -= delta;
       shrink_to_fit();
     }

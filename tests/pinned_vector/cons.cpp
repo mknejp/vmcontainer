@@ -16,6 +16,10 @@
 
 using namespace mknejp::vmcontainer;
 
+static auto round_up = [](std::size_t bytes, std::size_t page_size) {
+  return ((bytes + page_size - 1) / page_size) * page_size;
+};
+
 static_assert(std::is_nothrow_default_constructible<pinned_vector<int>>::value, "");
 static_assert(std::is_nothrow_move_constructible<pinned_vector<int>>::value, "");
 static_assert(std::is_nothrow_move_assignable<pinned_vector<int>>::value, "");
@@ -29,7 +33,7 @@ TEST_CASE("a default constructed pinned_vector is empty", "[pinned_vector][cons]
   CHECK(v.capacity() == 0);
 }
 
-TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_vector][capacity]")
 {
   SECTION("num_elements")
   {
@@ -39,13 +43,9 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
     // rounded up to page size
     REQUIRE(page_size > 0);
     CAPTURE(page_size);
-    auto max_size = (((sizeof(int) * 12345 + page_size - 1) / page_size) * page_size) / sizeof(int);
+    auto max_size = round_up(12345 * sizeof(int), page_size) / sizeof(int);
 
-    CHECK(v.capacity() == 0);
-    CHECK(v.size() == 0);
-    CHECK(v.empty() == true);
     CHECK(v.max_size() == max_size);
-    CHECK(v.page_size() == page_size);
   }
   SECTION("num_bytes")
   {
@@ -55,13 +55,9 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
     // rounded up to page size
     REQUIRE(page_size > 0);
     CAPTURE(page_size);
-    auto max_size = (((12345 + page_size - 1) / page_size) * page_size) / sizeof(int);
+    auto max_size = round_up(12345, page_size) / sizeof(int);
 
-    CHECK(v.capacity() == 0);
-    CHECK(v.size() == 0);
-    CHECK(v.empty() == true);
     CHECK(v.max_size() == max_size);
-    CHECK(v.page_size() == page_size);
   }
   SECTION("num_pages")
   {
@@ -72,11 +68,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
     CAPTURE(page_size);
     auto max_size = 10 * page_size / sizeof(int);
 
-    CHECK(v.capacity() == 0);
-    CHECK(v.size() == 0);
-    CHECK(v.empty() == true);
     CHECK(v.max_size() == max_size);
-    CHECK(v.page_size() == page_size);
   }
 }
 
@@ -139,6 +131,35 @@ TEST_CASE("pinned_vector construction from a count", "[pinned_vector][cons]")
   CHECK(v.empty() == false);
   CHECK(std::distance(v.begin(), v.end()) == 10);
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
+}
+
+TEST_CASE("pinned_vector constructed with elements has capacity rounded up to page size", "[pinned_vector][capacity]")
+{
+  SECTION("count and value")
+  {
+    auto v = pinned_vector<int>(num_elements{12345}, 50, 1);
+    CAPTURE(v.page_size());
+    CHECK(v.capacity() == round_up(50 * sizeof(int), v.page_size()) / sizeof(int));
+  }
+  SECTION("count")
+  {
+    auto v = pinned_vector<int>(num_elements{12345}, 1234);
+    CAPTURE(v.page_size());
+    CHECK(v.capacity() == round_up(1234 * sizeof(int), v.page_size()) / sizeof(int));
+  }
+  SECTION("initializer_list")
+  {
+    auto v = pinned_vector<int>(num_elements{12345}, {1, 2, 3, 4, 5, 6});
+    CAPTURE(v.page_size());
+    CHECK(v.capacity() == round_up(6 * sizeof(int), v.page_size()) / sizeof(int));
+  }
+  SECTION("iterator pair")
+  {
+    auto init = {1, 2, 3};
+    auto v = pinned_vector<int>(num_elements{12345}, begin(init), end(init));
+    CAPTURE(v.page_size());
+    CHECK(v.capacity() == round_up(3 * sizeof(int), v.page_size()) / sizeof(int));
+  }
 }
 
 TEST_CASE("pinned_vector copy construction", "[pinned_vector][cons]")
