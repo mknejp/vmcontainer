@@ -39,7 +39,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
   {
     auto v = pinned_vector<int>(num_elements{12345});
 
-    auto page_size = vm::default_vm_traits::page_size();
+    auto page_size = vm::system_default::page_size();
     // rounded up to page size
     REQUIRE(page_size > 0);
     CAPTURE(page_size);
@@ -51,7 +51,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
   {
     auto v = pinned_vector<int>(num_bytes{12345});
 
-    auto page_size = vm::default_vm_traits::page_size();
+    auto page_size = vm::system_default::page_size();
     // rounded up to page size
     REQUIRE(page_size > 0);
     CAPTURE(page_size);
@@ -63,7 +63,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
   {
     auto v = pinned_vector<int>(num_pages{10});
 
-    auto page_size = vm::default_vm_traits::page_size();
+    auto page_size = vm::system_default::page_size();
     REQUIRE(page_size > 0);
     CAPTURE(page_size);
     auto max_size = 10 * page_size / sizeof(int);

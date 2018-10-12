@@ -19,7 +19,7 @@
 #include <stdexcept>
 #include <system_error>
 
-auto mknejp::vmcontainer::vm::reserve(std::size_t num_bytes) -> void*
+auto mknejp::vmcontainer::vm::system_default::reserve(std::size_t num_bytes) -> void*
 {
   assert(num_bytes > 0);
 
@@ -41,7 +41,7 @@ auto mknejp::vmcontainer::vm::reserve(std::size_t num_bytes) -> void*
 #endif
 }
 
-auto mknejp::vmcontainer::vm::free(void* offset, std::size_t num_bytes) -> void
+auto mknejp::vmcontainer::vm::system_default::free(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
   auto const result = ::VirtualFree(offset, 0, MEM_RELEASE);
@@ -54,7 +54,7 @@ auto mknejp::vmcontainer::vm::free(void* offset, std::size_t num_bytes) -> void
 #endif
 }
 
-auto mknejp::vmcontainer::vm::commit(void* offset, std::size_t num_bytes) -> void
+auto mknejp::vmcontainer::vm::system_default::commit(void* offset, std::size_t num_bytes) -> void
 {
   assert(num_bytes > 0);
 
@@ -73,7 +73,7 @@ auto mknejp::vmcontainer::vm::commit(void* offset, std::size_t num_bytes) -> voi
 #endif
 }
 
-auto mknejp::vmcontainer::vm::decommit(void* offset, std::size_t num_bytes) -> void
+auto mknejp::vmcontainer::vm::system_default::decommit(void* offset, std::size_t num_bytes) -> void
 {
 #ifdef WIN32
   auto const result = ::VirtualFree(offset, num_bytes, MEM_DECOMMIT);
@@ -89,7 +89,7 @@ auto mknejp::vmcontainer::vm::decommit(void* offset, std::size_t num_bytes) -> v
 #endif
 }
 
-auto mknejp::vmcontainer::vm::page_size() noexcept -> std::size_t
+auto mknejp::vmcontainer::vm::system_default::page_size() noexcept -> std::size_t
 {
 #ifdef WIN32
   auto info = SYSTEM_INFO{};

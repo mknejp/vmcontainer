@@ -17,14 +17,7 @@ namespace mknejp
   {
     namespace vm
     {
-      auto reserve(std::size_t num_bytes) -> void*;
-      auto free(void* offset, std::size_t num_bytes) -> void;
-      auto commit(void* offset, std::size_t num_bytes) -> void;
-      auto decommit(void* offset, std::size_t num_bytes) -> void;
-
-      auto page_size() noexcept -> std::size_t;
-
-      struct default_vm_traits;
+      struct system_default;
 
       class reservation;
 
@@ -32,10 +25,10 @@ namespace mknejp
     }
     namespace detail
     {
-      template<typename VirtualMemoryTraits>
+      template<typename VirtualMemorySystem>
       class reservation;
 
-      template<typename VirtualMemoryTraits>
+      template<typename VirtualMemorySystem>
       class page_stack;
     }
   }
@@ -45,21 +38,21 @@ namespace mknejp
 // default_vm_traits
 //
 
-struct mknejp::vmcontainer::vm::default_vm_traits
+struct mknejp::vmcontainer::vm::system_default
 {
-  static auto reserve(std::size_t num_bytes) -> void* { return vm::reserve(num_bytes); }
-  static auto free(void* offset, std::size_t num_bytes) -> void { return vm::free(offset, num_bytes); }
-  static auto commit(void* offset, std::size_t num_bytes) -> void { return vm::commit(offset, num_bytes); }
-  static auto decommit(void* offset, std::size_t num_bytes) -> void { return vm::decommit(offset, num_bytes); }
+  static auto reserve(std::size_t num_bytes) -> void*;
+  static auto free(void* offset, std::size_t num_bytes) -> void;
+  static auto commit(void* offset, std::size_t num_bytes) -> void;
+  static auto decommit(void* offset, std::size_t num_bytes) -> void;
 
-  static auto page_size() noexcept -> std::size_t { return vm::page_size(); }
+  static auto page_size() noexcept -> std::size_t;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // reservation
 //
 
-template<typename VirtualMemoryTraits>
+template<typename VirtualMemorySystem>
 class mknejp::vmcontainer::detail::reservation
 {
 public:
@@ -68,8 +61,8 @@ public:
   {
     if(num_bytes > 0)
     {
-      num_bytes = round_up(num_bytes, VirtualMemoryTraits::page_size());
-      _reservation.reset(VirtualMemoryTraits::reserve(num_bytes));
+      num_bytes = round_up(num_bytes, VirtualMemorySystem::page_size());
+      _reservation.reset(VirtualMemorySystem::reserve(num_bytes));
       _reservation.get_deleter().reserved_bytes = num_bytes;
     }
   }
@@ -80,29 +73,29 @@ public:
 private:
   struct deleter
   {
-    auto operator()(void* p) const -> void { VirtualMemoryTraits::free(p, reserved_bytes); }
+    auto operator()(void* p) const -> void { VirtualMemorySystem::free(p, reserved_bytes); }
     value_init_when_moved_from<std::size_t> reserved_bytes = 0;
   };
 
   std::unique_ptr<void, deleter> _reservation;
 };
 
-class mknejp::vmcontainer::vm::reservation : public detail::reservation<default_vm_traits>
+class mknejp::vmcontainer::vm::reservation : public detail::reservation<system_default>
 {
-  using detail::reservation<default_vm_traits>::reservation;
+  using detail::reservation<system_default>::reservation;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // page_stack
 //
 
-template<typename VirtualMemoryTraits>
+template<typename VirtualMemorySystem>
 class mknejp::vmcontainer::detail::page_stack
 {
 public:
   page_stack() = default;
   explicit page_stack(num_bytes reserved_size) : _reservation(reserved_size.count) {}
-  explicit page_stack(num_pages reserved_size) : _reservation(reserved_size.count * VirtualMemoryTraits::page_size()) {}
+  explicit page_stack(num_pages reserved_size) : _reservation(reserved_size.count * VirtualMemorySystem::page_size()) {}
 
   auto commit(std::size_t bytes) -> void
   {
@@ -110,7 +103,7 @@ public:
     {
       auto const new_committed = round_up(committed_bytes() + bytes, page_size());
       assert(new_committed <= reserved_bytes());
-      VirtualMemoryTraits::commit(static_cast<char*>(base()) + committed_bytes(), new_committed - committed_bytes());
+      VirtualMemorySystem::commit(static_cast<char*>(base()) + committed_bytes(), new_committed - committed_bytes());
       _committed_bytes = new_committed;
     }
   }
@@ -123,7 +116,7 @@ public:
       auto const new_committed = round_up(committed_bytes() - bytes, page_size());
       if(new_committed < committed_bytes())
       {
-        VirtualMemoryTraits::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
+        VirtualMemorySystem::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
         _committed_bytes = new_committed;
       }
     }
@@ -145,14 +138,14 @@ public:
   auto base() const noexcept -> void* { return _reservation.base(); }
   auto committed_bytes() const noexcept -> std::size_t { return _committed_bytes; }
   auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
-  auto page_size() const noexcept -> std::size_t { return VirtualMemoryTraits::page_size(); }
+  auto page_size() const noexcept -> std::size_t { return VirtualMemorySystem::page_size(); }
 
 private:
-  reservation<VirtualMemoryTraits> _reservation;
+  reservation<VirtualMemorySystem> _reservation;
   value_init_when_moved_from<std::size_t> _committed_bytes = 0;
 };
 
-class mknejp::vmcontainer::vm::page_stack : public detail::page_stack<default_vm_traits>
+class mknejp::vmcontainer::vm::page_stack : public detail::page_stack<system_default>
 {
-  using detail::page_stack<default_vm_traits>::page_stack;
+  using detail::page_stack<system_default>::page_stack;
 };

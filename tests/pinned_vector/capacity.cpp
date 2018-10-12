@@ -18,7 +18,7 @@ static auto round_up = [](std::size_t bytes, std::size_t page_size) {
 TEST_CASE("pinned_vector::page_size() returns the system page size", "[pinned_vector][capacity]")
 {
   auto v = pinned_vector<int>();
-  CHECK(v.page_size() == vm::default_vm_traits::page_size());
+  CHECK(v.page_size() == vm::system_default::page_size());
 }
 
 TEST_CASE("pinned_vector::reserve() grows the capacity", "[pinned_vector][capacity]")
