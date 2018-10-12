@@ -230,3 +230,41 @@ TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_ve
   CHECK(v[3] == 13);
   CHECK(v[4] == 14);
 }
+
+TEST_CASE("pinned_vector::swap()", "[pinned_vector][special]")
+{
+  auto init_a = {1, 2, 3, 4, 5};
+  auto init_b = {6, 7, 8, 9};
+
+  auto a = pinned_vector<int>(num_elements{5}, init_a);
+  auto b = pinned_vector<int>(num_elements{4}, init_b);
+
+  auto a_begin = a.begin();
+  auto b_begin = b.begin();
+  auto a_end = a.end();
+  auto b_end = b.end();
+
+  REQUIRE(a.size() == 5);
+  REQUIRE(b.size() == 4);
+
+  SECTION("free swap()")
+  {
+    swap(a, b);
+    static_assert(noexcept(swap(a, b)), "pinned_vector swap() is not noexcept");
+  }
+  SECTION("member swap()")
+  {
+    a.swap(b);
+    static_assert(noexcept(a.swap(b)), "pinned_vector swap() is not noexcept");
+  }
+
+  REQUIRE(a.size() == 4);
+  REQUIRE(b.size() == 5);
+  REQUIRE(a.begin() == b_begin);
+  REQUIRE(b.begin() == a_begin);
+  REQUIRE(a.end() == b_end);
+  REQUIRE(b.end() == a_end);
+
+  REQUIRE(std::equal(a.begin(), a.end(), begin(init_b), end(init_b)));
+  REQUIRE(std::equal(b.begin(), b.end(), begin(init_a), end(init_a)));
+}
