@@ -11,9 +11,10 @@
 using namespace mknejp::vmcontainer;
 using namespace vmcontainer_test;
 
-static auto round_up = [](std::size_t bytes, std::size_t page_size) {
+static auto round_up(std::size_t bytes, std::size_t page_size)
+{
   return ((bytes + page_size - 1) / page_size) * page_size;
-};
+}
 
 TEST_CASE("pinned_vector::page_size() returns the system page size", "[pinned_vector][capacity]")
 {

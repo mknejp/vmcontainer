@@ -18,14 +18,17 @@ TEST_CASE("pinned_vector::push_back()", "[pinned_vector][push_back]")
   v.push_back(1);
   REQUIRE(v.size() == 1);
   REQUIRE(v[0] == 1);
+  REQUIRE(v.end() - v.begin() == 1);
 
   v.push_back(2);
   REQUIRE(v.size() == 2);
   REQUIRE(v[1] == 2);
+  REQUIRE(v.end() - v.begin() == 2);
 
   v.push_back(3);
   REQUIRE(v.size() == 3);
   REQUIRE(v[2] == 3);
+  REQUIRE(v.end() - v.begin() == 3);
 }
 
 TEST_CASE("pinned_vector::push_back() with CopyConstructible", "[pinned_vector][push_back]")
@@ -43,16 +46,19 @@ TEST_CASE("pinned_vector::push_back() with CopyConstructible", "[pinned_vector][
   v.push_back(x);
   REQUIRE(v.size() == 1);
   REQUIRE(v[0].x == 1);
+  REQUIRE(v.end() - v.begin() == 1);
 
   x.x = 2;
   v.push_back(x);
   REQUIRE(v.size() == 2);
   REQUIRE(v[1].x == 2);
+  REQUIRE(v.end() - v.begin() == 2);
 
   x.x = 3;
   v.push_back(x);
   REQUIRE(v.size() == 3);
   REQUIRE(v[2].x == 3);
+  REQUIRE(v.end() - v.begin() == 3);
 }
 
 TEST_CASE("pinned_vector::push_back() with MoveConstructible", "[pinned_vector][push_back]")
@@ -72,16 +78,19 @@ TEST_CASE("pinned_vector::push_back() with MoveConstructible", "[pinned_vector][
   v.push_back(std::move(x));
   REQUIRE(v.size() == 1);
   REQUIRE(v[0].x == 1);
+  REQUIRE(v.end() - v.begin() == 1);
 
   x.x = 2;
   v.push_back(std::move(x));
   REQUIRE(v.size() == 2);
   REQUIRE(v[1].x == 2);
+  REQUIRE(v.end() - v.begin() == 2);
 
   x.x = 3;
   v.push_back(std::move(x));
   REQUIRE(v.size() == 3);
   REQUIRE(v[2].x == 3);
+  REQUIRE(v.end() - v.begin() == 3);
 }
 
 TEST_CASE("pinned_vector::push_back() has strong exception guarantee on throwing copy construction",

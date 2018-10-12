@@ -16,9 +16,10 @@
 
 using namespace mknejp::vmcontainer;
 
-static auto round_up = [](std::size_t bytes, std::size_t page_size) {
+static auto round_up(std::size_t bytes, std::size_t page_size)
+{
   return ((bytes + page_size - 1) / page_size) * page_size;
-};
+}
 
 static_assert(std::is_nothrow_default_constructible<pinned_vector<int>>::value, "");
 static_assert(std::is_nothrow_move_constructible<pinned_vector<int>>::value, "");
