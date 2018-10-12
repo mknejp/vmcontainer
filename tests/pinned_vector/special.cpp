@@ -24,7 +24,7 @@ static_assert(std::is_nothrow_default_constructible<pinned_vector<int>>::value, 
 static_assert(std::is_nothrow_move_constructible<pinned_vector<int>>::value, "");
 static_assert(std::is_nothrow_move_assignable<pinned_vector<int>>::value, "");
 
-TEST_CASE("a default constructed pinned_vector is empty", "[pinned_vector][cons]")
+TEST_CASE("a default constructed pinned_vector is empty", "[pinned_vector][special]")
 {
   auto v = pinned_vector<int>();
   CHECK(v.empty() == true);
@@ -33,7 +33,7 @@ TEST_CASE("a default constructed pinned_vector is empty", "[pinned_vector][cons]
   CHECK(v.capacity() == 0);
 }
 
-TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_vector][capacity]")
+TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_vector][special]")
 {
   SECTION("num_elements")
   {
@@ -72,7 +72,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
   }
 }
 
-TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector][special]")
 {
   auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   auto v = pinned_vector<int>(num_elements{init.size()}, init);
@@ -82,7 +82,7 @@ TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector
   CHECK(std::equal(v.begin(), v.end(), init.begin(), init.end()));
 }
 
-TEST_CASE("pinned_vector construction from an iterator pair", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector construction from an iterator pair", "[pinned_vector][special]")
 {
   auto test = [](auto first, auto last, auto expected) {
     auto v = pinned_vector<int>(num_elements{expected.size()}, first, last);
@@ -113,7 +113,7 @@ TEST_CASE("pinned_vector construction from an iterator pair", "[pinned_vector][c
   }
 }
 
-TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][special]")
 {
   auto v = pinned_vector<int>(num_elements{10}, 10, 5);
 
@@ -123,7 +123,7 @@ TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 5; }));
 }
 
-TEST_CASE("pinned_vector construction from a count", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector construction from a count", "[pinned_vector][special]")
 {
   auto v = pinned_vector<int>(num_elements{10}, 10);
 
@@ -133,7 +133,7 @@ TEST_CASE("pinned_vector construction from a count", "[pinned_vector][cons]")
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
 }
 
-TEST_CASE("pinned_vector constructed with elements has capacity rounded up to page size", "[pinned_vector][capacity]")
+TEST_CASE("pinned_vector constructed with elements has capacity rounded up to page size", "[pinned_vector][special]")
 {
   SECTION("count and value")
   {
@@ -162,7 +162,7 @@ TEST_CASE("pinned_vector constructed with elements has capacity rounded up to pa
   }
 }
 
-TEST_CASE("pinned_vector copy construction", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector copy construction", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto b = a;
@@ -172,7 +172,7 @@ TEST_CASE("pinned_vector copy construction", "[pinned_vector][cons]")
   CHECK(std::equal(a.begin(), a.end(), b.begin(), b.end()));
 }
 
-TEST_CASE("pinned_vector copy assignment", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector copy assignment", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto b = pinned_vector<int>();
@@ -183,7 +183,7 @@ TEST_CASE("pinned_vector copy assignment", "[pinned_vector][cons]")
   CHECK(std::equal(a.begin(), a.end(), b.begin(), b.end()));
 }
 
-TEST_CASE("pinned_vector move construction", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector move construction", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto first = a.begin();
@@ -199,7 +199,7 @@ TEST_CASE("pinned_vector move construction", "[pinned_vector][cons]")
   CHECK(b.end() == last);
 }
 
-TEST_CASE("pinned_vector move assignment", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector move assignment", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto first = a.begin();
@@ -216,7 +216,7 @@ TEST_CASE("pinned_vector move assignment", "[pinned_vector][cons]")
   CHECK(b.end() == last);
 }
 
-TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_vector][cons]")
+TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_vector][special]")
 {
   auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
