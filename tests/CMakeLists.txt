@@ -14,6 +14,7 @@ add_executable(
   pinned_vector/capacity.cpp
   pinned_vector/contiguous.cpp
   pinned_vector/iterators.cpp
+  pinned_vector/push_back.cpp
   pinned_vector/special.cpp
   vm/page_stack.cpp
   vm/reservation.cpp
