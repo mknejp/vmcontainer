@@ -11,7 +11,7 @@
 #include <functional>
 #include <map>
 
-namespace pinned_vector_test
+namespace vmcontainer_test
 {
   template<typename Tag>
   struct virtual_memory_system_stub
@@ -53,11 +53,13 @@ namespace pinned_vector_test
   class tracking_allocator
   {
   public:
-    tracking_allocator() { virtual_memory_system_stub<Tag>::reset(); }
+    using vm_stub = virtual_memory_system_stub<Tag>;
+
+    tracking_allocator() { vm_stub::reset(); }
 
     auto expect_reserve(void* block, std::size_t expected_size) -> void
     {
-      virtual_memory_system_stub<Tag>::reserve = [this, block, expected_size](std::size_t num_bytes) {
+      vm_stub::reserve = [this, block, expected_size](std::size_t num_bytes) {
         REQUIRE(num_bytes == expected_size);
         auto result = _reservations.insert(std::make_pair(block, num_bytes));
         REQUIRE(result.second == true);
@@ -68,7 +70,7 @@ namespace pinned_vector_test
 
     auto expect_free(void* block) -> void
     {
-      virtual_memory_system_stub<Tag>::free = [this, block](void* p, std::size_t num_bytes) {
+      vm_stub::free = [this, block](void* p, std::size_t num_bytes) {
         REQUIRE(block == p);
         auto it = _reservations.find(p);
         REQUIRE(it != _reservations.end());
@@ -80,21 +82,36 @@ namespace pinned_vector_test
 
     auto expect_commit(void* offset, std::size_t expected_size) -> void
     {
-      virtual_memory_system_stub<Tag>::commit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
+      vm_stub::commit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
         REQUIRE(num_bytes == expected_size);
         REQUIRE(offset == p);
         ++_commit_calls;
       };
     };
 
+    auto expect_commit_and_fail(void* offset, std::size_t expected_size) -> void
+    {
+      vm_stub::commit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
+        REQUIRE(num_bytes == expected_size);
+        REQUIRE(offset == p);
+        ++_commit_calls;
+        throw std::bad_alloc();
+      };
+    };
+
     auto expect_decommit(void* offset, std::size_t expected_size) -> void
     {
-      virtual_memory_system_stub<Tag>::decommit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
+      vm_stub::decommit = [this, offset, expected_size](void* p, std::size_t num_bytes) {
         REQUIRE(num_bytes == expected_size);
         REQUIRE(offset == p);
         ++_decommit_calls;
       };
     };
+
+    auto set_page_size(std::size_t n)
+    {
+      vm_stub::page_size = [n] { return n; };
+    }
 
     auto reservations() const noexcept -> std::size_t { return _reservations.size(); }
     auto reserve_calls() const noexcept -> int { return _reserve_calls; }

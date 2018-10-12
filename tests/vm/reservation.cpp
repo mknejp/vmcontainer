@@ -24,8 +24,8 @@ TEST_CASE("vm::reservation", "[reservation]")
 {
   struct Tag
   {};
-  using virtual_memory_system_stub = pinned_vector_test::virtual_memory_system_stub<Tag>;
-  auto alloc = pinned_vector_test::tracking_allocator<Tag>();
+  using virtual_memory_system_stub = vmcontainer_test::virtual_memory_system_stub<Tag>;
+  auto alloc = vmcontainer_test::tracking_allocator<Tag>();
 
   virtual_memory_system_stub::page_size = [] { return 100; };
 

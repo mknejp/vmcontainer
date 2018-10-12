@@ -8,6 +8,7 @@ add_executable(
   instantiations.cpp
   main.cpp
 
+  pinned_vector_test.hpp
   pinned_vector/access.cpp
   pinned_vector/assign.cpp
   pinned_vector/capacity.cpp
