@@ -13,6 +13,7 @@ add_executable(
   pinned_vector/assign.cpp
   pinned_vector/capacity.cpp
   pinned_vector/contiguous.cpp
+  pinned_vector/emplace_back.cpp
   pinned_vector/iterators.cpp
   pinned_vector/push_back.cpp
   pinned_vector/special.cpp

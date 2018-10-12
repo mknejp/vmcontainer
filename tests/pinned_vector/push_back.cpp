@@ -15,18 +15,21 @@ TEST_CASE("pinned_vector::push_back()", "[pinned_vector][push_back]")
 {
   auto v = pinned_vector<int>(num_elements{10});
 
-  v.push_back(1);
+  int& a = v.push_back(1);
   REQUIRE(v.size() == 1);
+  REQUIRE(std::addressof(a) == std::addressof(v.back()));
   REQUIRE(v[0] == 1);
   REQUIRE(v.end() - v.begin() == 1);
 
-  v.push_back(2);
+  int& b = v.push_back(2);
   REQUIRE(v.size() == 2);
+  REQUIRE(std::addressof(b) == std::addressof(v.back()));
   REQUIRE(v[1] == 2);
   REQUIRE(v.end() - v.begin() == 2);
 
-  v.push_back(3);
+  int& c = v.push_back(3);
   REQUIRE(v.size() == 3);
+  REQUIRE(std::addressof(c) == std::addressof(v.back()));
   REQUIRE(v[2] == 3);
   REQUIRE(v.end() - v.begin() == 3);
 }
@@ -43,20 +46,23 @@ TEST_CASE("pinned_vector::push_back() with CopyConstructible", "[pinned_vector][
 
   auto x = CopyConstructible(1);
 
-  v.push_back(x);
+  CopyConstructible& a = v.push_back(x);
   REQUIRE(v.size() == 1);
+  REQUIRE(std::addressof(a) == std::addressof(v.back()));
   REQUIRE(v[0].x == 1);
   REQUIRE(v.end() - v.begin() == 1);
 
   x.x = 2;
-  v.push_back(x);
+  CopyConstructible& b = v.push_back(x);
   REQUIRE(v.size() == 2);
+  REQUIRE(std::addressof(b) == std::addressof(v.back()));
   REQUIRE(v[1].x == 2);
   REQUIRE(v.end() - v.begin() == 2);
 
   x.x = 3;
-  v.push_back(x);
+  CopyConstructible& c = v.push_back(x);
   REQUIRE(v.size() == 3);
+  REQUIRE(std::addressof(c) == std::addressof(v.back()));
   REQUIRE(v[2].x == 3);
   REQUIRE(v.end() - v.begin() == 3);
 }
@@ -75,20 +81,23 @@ TEST_CASE("pinned_vector::push_back() with MoveConstructible", "[pinned_vector][
 
   auto x = MoveConstructible(1);
 
-  v.push_back(std::move(x));
+  MoveConstructible& a = v.push_back(std::move(x));
   REQUIRE(v.size() == 1);
+  REQUIRE(std::addressof(a) == std::addressof(v.back()));
   REQUIRE(v[0].x == 1);
   REQUIRE(v.end() - v.begin() == 1);
 
   x.x = 2;
-  v.push_back(std::move(x));
+  MoveConstructible& b = v.push_back(std::move(x));
   REQUIRE(v.size() == 2);
+  REQUIRE(std::addressof(b) == std::addressof(v.back()));
   REQUIRE(v[1].x == 2);
   REQUIRE(v.end() - v.begin() == 2);
 
   x.x = 3;
-  v.push_back(std::move(x));
+  MoveConstructible& c = v.push_back(std::move(x));
   REQUIRE(v.size() == 3);
+  REQUIRE(std::addressof(c) == std::addressof(v.back()));
   REQUIRE(v[2].x == 3);
   REQUIRE(v.end() - v.begin() == 3);
 }
@@ -116,9 +125,9 @@ TEST_CASE("pinned_vector::push_back() has strong exception guarantee on throwing
   v.push_back(x);
   v.push_back(x);
   REQUIRE(v.size() == 2);
-  x.should_throw = true;
 
   auto state = capture_value_state(v);
+  x.should_throw = true;
   REQUIRE_THROWS_AS(v.push_back(x), int);
 
   REQUIRE(capture_value_state(v) == state);
@@ -147,9 +156,9 @@ TEST_CASE("pinned_vector::push_back() has strong exception guarantee on throwing
   v.push_back(std::move(x));
   v.push_back(std::move(x));
   REQUIRE(v.size() == 2);
-  x.should_throw = true;
 
   auto state = capture_value_state(v);
+  x.should_throw = true;
   REQUIRE_THROWS_AS(v.push_back(std::move(x)), int);
 
   REQUIRE(capture_value_state(v) == state);
