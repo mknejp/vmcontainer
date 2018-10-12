@@ -7,7 +7,9 @@ add_executable(
   detail/value_init_when_moved_from.cpp
   instantiations.cpp
   main.cpp
+
   pinned_vector/access.cpp
+  pinned_vector/assign.cpp
   pinned_vector/cons.cpp
   pinned_vector/contiguous.cpp
   pinned_vector/iterators.cpp
