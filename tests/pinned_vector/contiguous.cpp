@@ -31,10 +31,10 @@ SCENARIO("pinned_vector is a contiguous container", "[pinned_vector]")
   };
 
   GIVEN("an empty container") { check(pinned_vector<int>()); }
-  GIVEN("a small container") { check(pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})); }
+  GIVEN("a small container") { check(pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})); }
   GIVEN("a large container spanning multiple pages")
   {
-    auto v = pinned_vector<int>(num_pages{5});
+    auto v = pinned_vector<int>(max_pages(5));
     std::generate_n(std::back_inserter(v), v.max_size(), [i = 0]() mutable { return i++; });
     check(v);
   }

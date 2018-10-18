@@ -47,7 +47,7 @@ template<typename T>
 static void required_functions()
 {
   // ctor
-  auto a = pinned_vector<T>(num_bytes{100});
+  auto a = pinned_vector<T>(max_bytes(100));
   // move ctor
   auto b = std::move(a);
   // move assign
@@ -115,7 +115,7 @@ static void required_functions()
 template<typename T>
 static void required_for_copyable()
 {
-  pinned_vector<T> a(num_bytes{100});
+  pinned_vector<T> a(max_bytes(100));
   // copy ctor
   auto b = a;
   // copy assign

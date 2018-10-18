@@ -13,7 +13,7 @@ using namespace vmcontainer_test;
 
 TEST_CASE("pinned_vector::push_back()", "[pinned_vector][push_back]")
 {
-  auto v = pinned_vector<int>(num_elements{10});
+  auto v = pinned_vector<int>(max_elements(10));
 
   int& a = v.push_back(1);
   REQUIRE(v.size() == 1);
@@ -42,7 +42,7 @@ TEST_CASE("pinned_vector::push_back() with CopyConstructible", "[pinned_vector][
     int x;
   };
 
-  auto v = pinned_vector<CopyConstructible>(num_elements{10});
+  auto v = pinned_vector<CopyConstructible>(max_elements(10));
 
   auto x = CopyConstructible(1);
 
@@ -77,7 +77,7 @@ TEST_CASE("pinned_vector::push_back() with MoveConstructible", "[pinned_vector][
     int x;
   };
 
-  auto v = pinned_vector<MoveConstructible>(num_elements{10});
+  auto v = pinned_vector<MoveConstructible>(max_elements(10));
 
   auto x = MoveConstructible(1);
 
@@ -118,7 +118,7 @@ TEST_CASE("pinned_vector::push_back() has strong exception guarantee on throwing
     bool should_throw = false;
   };
 
-  auto v = pinned_vector<may_throw_when_copied>(num_elements{10});
+  auto v = pinned_vector<may_throw_when_copied>(max_elements(10));
 
   auto x = may_throw_when_copied();
 
@@ -149,7 +149,7 @@ TEST_CASE("pinned_vector::push_back() has strong exception guarantee on throwing
     bool should_throw = false;
   };
 
-  auto v = pinned_vector<may_throw_when_copied>(num_elements{10});
+  auto v = pinned_vector<may_throw_when_copied>(max_elements(10));
 
   auto x = may_throw_when_copied();
 
@@ -178,7 +178,7 @@ TEST_CASE("pinned_vector::push_back() has strong exception guarantee if committi
   alloc.expect_commit(page, sizeof(page));
   alloc.expect_free(page);
 
-  auto v = pinned_vector<int, traits>(num_pages{2});
+  auto v = pinned_vector<int, traits>(max_pages(2));
   REQUIRE(v.max_size() == 8);
 
   v.push_back(1);

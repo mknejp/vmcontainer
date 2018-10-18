@@ -29,7 +29,7 @@ namespace
   template<typename T>
   auto init_vector(std::size_t max_size, tag<pinned_vector<T>>) -> pinned_vector<T>
   {
-    return pinned_vector<T>(num_elements{max_size});
+    return pinned_vector<T>(max_elements(max_size));
   }
 
   constexpr auto max_memory_bytes = std::size_t(4) * 1024 * 1024 * 1024;

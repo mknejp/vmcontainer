@@ -5,6 +5,7 @@
 //
 
 #pragma once
+#include <cassert>
 #include <cstddef>
 #include <type_traits>
 #include <utility>
@@ -13,18 +14,15 @@ namespace mknejp
 {
   namespace vmcontainer
   {
-    struct num_pages
-    {
-      std::size_t count;
-    };
-    struct num_elements
-    {
-      std::size_t count;
-    };
-    struct num_bytes
-    {
-      std::size_t count;
-    };
+    class max_size_t;
+    class reservation_size_t;
+
+    constexpr auto max_elements(std::size_t n) noexcept -> max_size_t;
+    constexpr auto max_bytes(std::size_t n) noexcept -> max_size_t;
+    constexpr auto max_pages(std::size_t n) noexcept -> max_size_t;
+
+    constexpr auto num_bytes(std::size_t n) noexcept -> reservation_size_t;
+    constexpr auto num_pages(std::size_t n) noexcept -> reservation_size_t;
 
     namespace detail
     {
@@ -53,6 +51,105 @@ namespace mknejp
       auto uninitialized_default_construct_n(ForwardIt first, std::size_t count) -> ForwardIt;
     }
   }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// reservation_size_t
+//
+
+class mknejp::vmcontainer::reservation_size_t
+{
+public:
+  constexpr auto num_bytes(std::size_t page_size) const noexcept
+  {
+    switch(_unit)
+    {
+      case unit::bytes:
+        return _count;
+      case unit::pages:
+        return _count * page_size;
+    }
+    assert(false);
+    return std::size_t(0);
+  }
+
+private:
+  friend constexpr auto num_bytes(std::size_t n) noexcept -> reservation_size_t;
+  friend constexpr auto num_pages(std::size_t n) noexcept -> reservation_size_t;
+
+  enum class unit
+  {
+    pages,
+    bytes,
+  };
+
+  constexpr reservation_size_t(unit unit, std::size_t count) noexcept : _unit(unit), _count(count) {}
+
+  unit _unit = unit::bytes;
+  std::size_t _count = 0;
+};
+
+constexpr auto mknejp::vmcontainer::num_bytes(std::size_t n) noexcept -> reservation_size_t
+{
+  return {reservation_size_t::unit::bytes, n};
+}
+constexpr auto mknejp::vmcontainer::num_pages(std::size_t n) noexcept -> reservation_size_t
+{
+  return {reservation_size_t::unit::pages, n};
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// max_size_t
+//
+
+class mknejp::vmcontainer::max_size_t
+{
+public:
+  template<typename T>
+  constexpr auto scaled_for_type() const noexcept -> reservation_size_t
+  {
+    switch(_unit)
+    {
+      case unit::elements:
+        return num_bytes(sizeof(T) * _count);
+      case unit::bytes:
+        return num_bytes(_count);
+      case unit::pages:
+        return num_pages(_count);
+    }
+    assert(false);
+    return num_pages(0);
+  }
+
+private:
+  friend constexpr auto max_elements(std::size_t n) noexcept -> max_size_t;
+  friend constexpr auto max_bytes(std::size_t n) noexcept -> max_size_t;
+  friend constexpr auto max_pages(std::size_t n) noexcept -> max_size_t;
+
+  enum class unit
+  {
+    elements,
+    pages,
+    bytes,
+  };
+
+  constexpr max_size_t(unit unit, std::size_t count) noexcept : _unit(unit), _count(count) {}
+
+  unit _unit = unit::bytes;
+  std::size_t _count = 0;
+};
+
+constexpr auto mknejp::vmcontainer::max_elements(std::size_t n) noexcept -> max_size_t
+{
+  return {max_size_t::unit::elements, n};
+}
+constexpr auto mknejp::vmcontainer::max_bytes(std::size_t n) noexcept -> max_size_t
+{
+  return {max_size_t::unit::bytes, n};
+}
+constexpr auto mknejp::vmcontainer::max_pages(std::size_t n) noexcept -> max_size_t
+{
+  return {max_size_t::unit::pages, n};
 }
 
 ///////////////////////////////////////////////////////////////////////////////

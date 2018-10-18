@@ -14,7 +14,7 @@ using namespace mknejp::vmcontainer;
 
 TEST_CASE("pinned_vector::at()", "[pinned_vector][access]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
 
   GIVEN("an in-range index")
@@ -46,7 +46,7 @@ TEST_CASE("pinned_vector::at()", "[pinned_vector][access]")
 
 TEST_CASE("pinned_vector::operator[]()", "[pinned_vector][access]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
 
   GIVEN("an in-range index")
@@ -68,7 +68,7 @@ TEST_CASE("pinned_vector::operator[]()", "[pinned_vector][access]")
 
 TEST_CASE("pinned_vector::front()", "[pinned_vector][access]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
 
   auto& r = v.front();
@@ -83,7 +83,7 @@ TEST_CASE("pinned_vector::front()", "[pinned_vector][access]")
 
 TEST_CASE("pinned_vector::back()", "[pinned_vector][access]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
 
   auto& r = v.back();
@@ -98,7 +98,7 @@ TEST_CASE("pinned_vector::back()", "[pinned_vector][access]")
 
 TEST_CASE("pinned_vector::data()", "[pinned_vector][access]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto const& cv = v;
 
   auto p = v.data();

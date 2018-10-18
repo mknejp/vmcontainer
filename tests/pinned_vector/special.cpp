@@ -39,7 +39,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
 {
   SECTION("num_elements")
   {
-    auto v = pinned_vector<int>(num_elements{12345});
+    auto v = pinned_vector<int>(max_elements(12345));
 
     auto page_size = vm::system_default::page_size();
     // rounded up to page size
@@ -51,7 +51,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
   }
   SECTION("num_bytes")
   {
-    auto v = pinned_vector<int>(num_bytes{12345});
+    auto v = pinned_vector<int>(max_bytes(12345));
 
     auto page_size = vm::system_default::page_size();
     // rounded up to page size
@@ -63,7 +63,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
   }
   SECTION("num_pages")
   {
-    auto v = pinned_vector<int>(num_pages{10});
+    auto v = pinned_vector<int>(max_pages(10));
 
     auto page_size = vm::system_default::page_size();
     REQUIRE(page_size > 0);
@@ -77,7 +77,7 @@ TEST_CASE("pinned_vector construction creates appropriate max_size", "[pinned_ve
 TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector][special]")
 {
   auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  auto v = pinned_vector<int>(num_elements{init.size()}, init);
+  auto v = pinned_vector<int>(max_elements(init.size()), init);
 
   CHECK(v.size() == init.size());
   CHECK(v.empty() == false);
@@ -87,7 +87,7 @@ TEST_CASE("pinned_vector construction from an initializer_list", "[pinned_vector
 TEST_CASE("pinned_vector construction from an iterator pair", "[pinned_vector][special]")
 {
   auto test = [](auto first, auto last, auto expected) {
-    auto v = pinned_vector<int>(num_elements{expected.size()}, first, last);
+    auto v = pinned_vector<int>(max_elements(expected.size()), first, last);
     CHECK(v.size() == expected.size());
     CHECK(v.empty() == false);
     CHECK(std::equal(v.begin(), v.end(), begin(expected), end(expected)));
@@ -117,7 +117,7 @@ TEST_CASE("pinned_vector construction from an iterator pair", "[pinned_vector][s
 
 TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][special]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, 10, 5);
+  auto v = pinned_vector<int>(max_elements(10), 10, 5);
 
   CHECK(v.size() == 10);
   CHECK(v.empty() == false);
@@ -127,7 +127,7 @@ TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][
 
 TEST_CASE("pinned_vector construction from a count", "[pinned_vector][special]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, 10);
+  auto v = pinned_vector<int>(max_elements(10), 10);
 
   CHECK(v.size() == 10);
   CHECK(v.empty() == false);
@@ -139,26 +139,26 @@ TEST_CASE("pinned_vector constructed with elements has capacity rounded up to pa
 {
   SECTION("count and value")
   {
-    auto v = pinned_vector<int>(num_elements{12345}, 50, 1);
+    auto v = pinned_vector<int>(max_elements(12345), 50, 1);
     CAPTURE(v.page_size());
     CHECK(v.capacity() == round_up(50 * sizeof(int), v.page_size()) / sizeof(int));
   }
   SECTION("count")
   {
-    auto v = pinned_vector<int>(num_elements{12345}, 1234);
+    auto v = pinned_vector<int>(max_elements(12345), 1234);
     CAPTURE(v.page_size());
     CHECK(v.capacity() == round_up(1234 * sizeof(int), v.page_size()) / sizeof(int));
   }
   SECTION("initializer_list")
   {
-    auto v = pinned_vector<int>(num_elements{12345}, {1, 2, 3, 4, 5, 6});
+    auto v = pinned_vector<int>(max_elements(12345), {1, 2, 3, 4, 5, 6});
     CAPTURE(v.page_size());
     CHECK(v.capacity() == round_up(6 * sizeof(int), v.page_size()) / sizeof(int));
   }
   SECTION("iterator pair")
   {
     auto init = {1, 2, 3};
-    auto v = pinned_vector<int>(num_elements{12345}, begin(init), end(init));
+    auto v = pinned_vector<int>(max_elements(12345), begin(init), end(init));
     CAPTURE(v.page_size());
     CHECK(v.capacity() == round_up(3 * sizeof(int), v.page_size()) / sizeof(int));
   }
@@ -166,7 +166,7 @@ TEST_CASE("pinned_vector constructed with elements has capacity rounded up to pa
 
 TEST_CASE("pinned_vector copy construction", "[pinned_vector][special]")
 {
-  auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto a = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto b = a;
 
   CHECK(a.size() == b.size());
@@ -176,7 +176,7 @@ TEST_CASE("pinned_vector copy construction", "[pinned_vector][special]")
 
 TEST_CASE("pinned_vector copy assignment", "[pinned_vector][special]")
 {
-  auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto a = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto b = pinned_vector<int>();
   b = a;
 
@@ -187,7 +187,7 @@ TEST_CASE("pinned_vector copy assignment", "[pinned_vector][special]")
 
 TEST_CASE("pinned_vector move construction", "[pinned_vector][special]")
 {
-  auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto a = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto a_state = capture_value_state(a);
 
   auto b = std::move(a);
@@ -199,7 +199,7 @@ TEST_CASE("pinned_vector move construction", "[pinned_vector][special]")
 
 TEST_CASE("pinned_vector move assignment", "[pinned_vector][special]")
 {
-  auto a = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto a = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
   auto a_state = capture_value_state(a);
 
   auto b = pinned_vector<int>();
@@ -212,7 +212,7 @@ TEST_CASE("pinned_vector move assignment", "[pinned_vector][special]")
 
 TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_vector][special]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
   v = {10, 11, 12, 13, 14};
 
@@ -230,8 +230,8 @@ TEST_CASE("pinned_vector::swap()", "[pinned_vector][special]")
   auto init_a = {1, 2, 3, 4, 5};
   auto init_b = {6, 7, 8, 9};
 
-  auto a = pinned_vector<int>(num_elements{5}, init_a);
-  auto b = pinned_vector<int>(num_elements{4}, init_b);
+  auto a = pinned_vector<int>(max_elements(5), init_a);
+  auto b = pinned_vector<int>(max_elements(4), init_b);
 
   auto a_state = capture_value_state(a);
   auto b_state = capture_value_state(b);

@@ -64,61 +64,29 @@ public:
 
   // constructors
   pinned_vector() = default;
-  explicit pinned_vector(num_bytes max_size) : _storage(max_size) {}
-  explicit pinned_vector(num_elements max_size) : _storage(num_bytes{max_size.count * sizeof(T)}) {}
-  explicit pinned_vector(num_pages max_size) : _storage(max_size) {}
+  explicit pinned_vector(max_size_t max_size) : _storage(max_size.scaled_for_type<T>()) {}
 
-  pinned_vector(num_bytes max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
-  pinned_vector(num_elements max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
-  pinned_vector(num_pages max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
+  pinned_vector(max_size_t max_size, std::initializer_list<T> init) : pinned_vector(max_size) { insert(end(), init); }
 
   template<typename InputIter,
            typename = typename std::enable_if<
              std::is_base_of<std::input_iterator_tag,
                              typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
   // requires InputIterator<InputIter>
-  pinned_vector(num_bytes max_size, InputIter first, InputIter last) : pinned_vector(max_size)
-  {
-    insert(end(), first, last);
-  }
-  template<typename InputIter,
-           typename = typename std::enable_if<
-             std::is_base_of<std::input_iterator_tag,
-                             typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
-  // requires InputIterator<InputIter>
-  pinned_vector(num_elements max_size, InputIter first, InputIter last) : pinned_vector(max_size)
-  {
-    insert(end(), first, last);
-  }
-  template<typename InputIter,
-           typename = typename std::enable_if<
-             std::is_base_of<std::input_iterator_tag,
-                             typename std::iterator_traits<InputIter>::iterator_category>::value>::type>
-  // requires InputIterator<InputIter>
-  pinned_vector(num_pages max_size, InputIter first, InputIter last) : pinned_vector(max_size)
+  pinned_vector(max_size_t max_size, InputIter first, InputIter last) : pinned_vector(max_size)
   {
     insert(end(), first, last);
   }
 
-  pinned_vector(num_bytes max_size, size_type count, T const& value) : pinned_vector(max_size)
-  {
-    insert(end(), count, value);
-  }
-  pinned_vector(num_elements max_size, size_type count, T const& value) : pinned_vector(max_size)
-  {
-    insert(end(), count, value);
-  }
-  pinned_vector(num_pages max_size, size_type count, T const& value) : pinned_vector(max_size)
+  pinned_vector(max_size_t max_size, size_type count, T const& value) : pinned_vector(max_size)
   {
     insert(end(), count, value);
   }
 
-  pinned_vector(num_bytes max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
-  pinned_vector(num_elements max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
-  pinned_vector(num_pages max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
+  pinned_vector(max_size_t max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
 
   // Special members
-  pinned_vector(pinned_vector const& other) : _storage(num_bytes{other._storage.reserved_bytes()})
+  pinned_vector(pinned_vector const& other) : _storage(num_bytes(other._storage.reserved_bytes()))
   {
     _storage.commit(other.size() * sizeof(T));
     _end = detail::uninitialized_copy(other.cbegin(), other.cend(), data());

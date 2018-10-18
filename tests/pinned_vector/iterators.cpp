@@ -59,7 +59,7 @@ TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned
 
   GIVEN("an empty container")
   {
-    auto v = pinned_vector<int>(num_elements{1});
+    auto v = pinned_vector<int>(max_elements(1));
     test(v);
   }
   GIVEN("a default-constructed container")
@@ -69,7 +69,7 @@ TEST_CASE("pinned_vector iterators compare equal for empty containers", "[pinned
   }
   GIVEN("a moved-from container")
   {
-    auto v = pinned_vector<int>(num_elements{1});
+    auto v = pinned_vector<int>(max_elements(1));
     auto _ = std::move(v);
     test(v);
   }
@@ -80,7 +80,7 @@ TEST_CASE("pinned_vector container iteration", "[pinned_vector][iterator]")
   GIVEN("a non-empty container")
   {
     auto init = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    auto v = pinned_vector<int>(num_elements{10}, init);
+    auto v = pinned_vector<int>(max_elements(10), init);
     auto const& cv = v;
 
     THEN("begin() and end() iterate through all values")

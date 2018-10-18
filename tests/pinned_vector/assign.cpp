@@ -18,7 +18,7 @@ using namespace mknejp::vmcontainer;
 TEST_CASE("pinned_vector::assign() with an iterator pair", "[pinned_vector][cons]")
 {
   auto test = [](auto first, auto last, auto expected) {
-    auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+    auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
     v.assign(first, last);
     CHECK(v.size() == expected.size());
@@ -50,7 +50,7 @@ TEST_CASE("pinned_vector::assign() with an iterator pair", "[pinned_vector][cons
 
 TEST_CASE("pinned_vector::assign() with a count and value", "[pinned_vector][cons]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
   v.assign(5, 6);
   CHECK(v.size() == 5);
@@ -61,7 +61,7 @@ TEST_CASE("pinned_vector::assign() with a count and value", "[pinned_vector][con
 
 TEST_CASE("pinned_vector::assign() with an initializer_list", "[pinned_vector][cons]")
 {
-  auto v = pinned_vector<int>(num_elements{10}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+  auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
 
   auto replacement = {10, 11, 12, 13, 14};
   v.assign(replacement);

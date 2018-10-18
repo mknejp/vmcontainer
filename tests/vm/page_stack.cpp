@@ -52,7 +52,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_bytes{1000});
+      auto vmps = page_stack(num_bytes(1000));
       CHECK(alloc.reservations() == 1);
       CHECK(alloc.reserve_calls() == 1);
       CHECK(alloc.free_calls() == 0);
@@ -74,7 +74,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_pages{10});
+      auto vmps = page_stack(num_pages(10));
       CHECK(alloc.reservations() == 1);
       CHECK(alloc.reserve_calls() == 1);
       CHECK(alloc.free_calls() == 0);
@@ -96,7 +96,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps1 = page_stack(num_bytes{1000});
+      auto vmps1 = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 400);
       vmps1.commit(400);
 
@@ -127,13 +127,13 @@ TEST_CASE("vm::page_stack", "[page_stack]")
       char block1[1000];
       char block2[2000];
       alloc.expect_reserve(block1, 1000);
-      auto vmps1 = page_stack(num_bytes{1000});
+      auto vmps1 = page_stack(num_bytes(1000));
       alloc.expect_commit(block1, 400);
       vmps1.commit(400);
 
       {
         alloc.expect_reserve(block2, 2000);
-        auto vmps2 = page_stack(num_bytes{2000});
+        auto vmps2 = page_stack(num_bytes(2000));
         alloc.expect_commit(block2, 300);
         vmps2.commit(300);
 
@@ -165,7 +165,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
   {
     char block[1000];
     alloc.expect_reserve(block, 1000);
-    auto vmps = page_stack(num_bytes{1000});
+    auto vmps = page_stack(num_bytes(1000));
     alloc.expect_commit(block, 400);
     vmps.commit(400);
 
@@ -195,7 +195,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_bytes{1000});
+      auto vmps = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 100);
       vmps.commit(100);
       CHECK(vmps.committed_bytes() == 100);
@@ -221,7 +221,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_bytes{1000});
+      auto vmps = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 100);
       vmps.commit(100);
       CHECK(vmps.committed_bytes() == 100);
@@ -265,7 +265,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_bytes{1000});
+      auto vmps = page_stack(num_bytes(1000));
       vmps.commit(0);
       CHECK(vmps.committed_bytes() == 0);
       CHECK(alloc.commit_calls() == 0);
@@ -308,7 +308,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_bytes{1000});
+      auto vmps = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 400);
       vmps.commit(400);
       CHECK(vmps.committed_bytes() == 400);
@@ -357,13 +357,13 @@ TEST_CASE("vm::page_stack", "[page_stack]")
       char block1[1000];
       char block2[2000];
       alloc.expect_reserve(block1, 1000);
-      auto vmps1 = page_stack(num_bytes{1000});
+      auto vmps1 = page_stack(num_bytes(1000));
       alloc.expect_commit(block1, 400);
       vmps1.commit(400);
 
       {
         alloc.expect_reserve(block2, 2000);
-        auto vmps2 = page_stack(num_bytes{2000});
+        auto vmps2 = page_stack(num_bytes(2000));
         alloc.expect_commit(block2, 300);
         vmps2.commit(300);
 

@@ -13,7 +13,7 @@ using namespace vmcontainer_test;
 
 TEST_CASE("pinned_vector::emplace_back()", "[pinned_vector][emplace_back]")
 {
-  auto v = pinned_vector<int>(num_elements{10});
+  auto v = pinned_vector<int>(max_elements(10));
 
   int& a = v.emplace_back(1);
   REQUIRE(v.size() == 1);
@@ -42,7 +42,7 @@ TEST_CASE("pinned_vector::emplace_back() with CopyConstructible", "[pinned_vecto
     int x;
   };
 
-  auto v = pinned_vector<CopyConstructible>(num_elements{10});
+  auto v = pinned_vector<CopyConstructible>(max_elements(10));
 
   auto x = CopyConstructible(1);
 
@@ -77,7 +77,7 @@ TEST_CASE("pinned_vector::emplace_back() with MoveConstructible", "[pinned_vecto
     int x;
   };
 
-  auto v = pinned_vector<MoveConstructible>(num_elements{10});
+  auto v = pinned_vector<MoveConstructible>(max_elements(10));
 
   auto x = MoveConstructible(1);
 
@@ -111,7 +111,7 @@ TEST_CASE("pinned_vector::emplace_back() with DefaultConstructible", "[pinned_ve
     int x = counter++;
   };
 
-  auto v = pinned_vector<DefaultConstructible>(num_elements{10});
+  auto v = pinned_vector<DefaultConstructible>(max_elements(10));
 
   DefaultConstructible& a = v.emplace_back();
   REQUIRE(v.size() == 1);
@@ -161,7 +161,7 @@ namespace
 
 TEST_CASE("pinned_vector::emplace_back() forwards arguments to value constructor", "[pinned_vector][emplace_back]")
 {
-  auto v = pinned_vector<check_emplace_arg_forwarding>(num_elements{10});
+  auto v = pinned_vector<check_emplace_arg_forwarding>(max_elements(10));
 
   auto a = 1;
   auto b = 2;
@@ -185,7 +185,7 @@ TEST_CASE("pinned_vector::emplace_back() with NotMoveConstructibleNotCopyConstru
     int x;
   };
 
-  auto v = pinned_vector<NotMoveConstructibleNotCopyConstructible>(num_elements{10});
+  auto v = pinned_vector<NotMoveConstructibleNotCopyConstructible>(max_elements(10));
 
   NotMoveConstructibleNotCopyConstructible& a = v.emplace_back(1);
   REQUIRE(v.size() == 1);
@@ -222,7 +222,7 @@ TEST_CASE("pinned_vector::emplace_back() has strong exception guarantee on throw
     bool should_throw = false;
   };
 
-  auto v = pinned_vector<may_throw_when_copied>(num_elements{10});
+  auto v = pinned_vector<may_throw_when_copied>(max_elements(10));
 
   auto x = may_throw_when_copied();
 
@@ -253,7 +253,7 @@ TEST_CASE("pinned_vector::emplace_back() has strong exception guarantee on throw
     bool should_throw = false;
   };
 
-  auto v = pinned_vector<may_throw_when_copied>(num_elements{10});
+  auto v = pinned_vector<may_throw_when_copied>(max_elements(10));
 
   auto x = may_throw_when_copied();
 
@@ -284,7 +284,7 @@ TEST_CASE("pinned_vector::emplace_back() has strong exception guarantee on throw
     }
   };
 
-  auto v = pinned_vector<may_throw_when_constructed>(num_elements{10});
+  auto v = pinned_vector<may_throw_when_constructed>(max_elements(10));
 
   v.emplace_back();
   v.emplace_back();
@@ -311,7 +311,7 @@ TEST_CASE("pinned_vector::emplace_back() has strong exception guarantee if commi
   alloc.expect_commit(page, sizeof(page));
   alloc.expect_free(page);
 
-  auto v = pinned_vector<int, traits>(num_pages{2});
+  auto v = pinned_vector<int, traits>(max_pages(2));
   REQUIRE(v.max_size() == 8);
 
   v.emplace_back(1);

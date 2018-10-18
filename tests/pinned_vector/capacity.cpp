@@ -24,7 +24,7 @@ TEST_CASE("pinned_vector::page_size() returns the system page size", "[pinned_ve
 
 TEST_CASE("pinned_vector::reserve() grows the capacity", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_pages{10});
+  auto v = pinned_vector<int>(max_pages(10));
   auto page_size = v.page_size();
   REQUIRE(page_size > 0);
   CAPTURE(page_size);
@@ -44,7 +44,7 @@ TEST_CASE("pinned_vector::reserve() grows the capacity", "[pinned_vector][capaci
 
 TEST_CASE("pinned_vector::reserve() grows in multiples of page size", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_pages{10});
+  auto v = pinned_vector<int>(max_pages(10));
   auto page_size = v.page_size();
   REQUIRE(page_size > 0);
   CAPTURE(page_size);
@@ -61,7 +61,7 @@ TEST_CASE("pinned_vector::reserve() grows in multiples of page size", "[pinned_v
 
 TEST_CASE("pinned_vector::reserve() does not reduce capacity", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_pages{2});
+  auto v = pinned_vector<int>(max_pages(2));
   auto page_size = v.page_size();
   REQUIRE(page_size > 0);
   CAPTURE(page_size);
@@ -87,7 +87,7 @@ TEST_CASE("pinned_vector::reserve() has strong exception guarantee if committing
   alloc.expect_commit(page, sizeof(page));
   alloc.expect_free(page);
 
-  auto v = pinned_vector<int, traits>(num_pages{2});
+  auto v = pinned_vector<int, traits>(max_pages(2));
   REQUIRE(v.max_size() == 8);
   REQUIRE(v.size() == 0);
 
@@ -106,7 +106,7 @@ TEST_CASE("pinned_vector::reserve() has strong exception guarantee if committing
 TEST_CASE("pinned_vector::shrink_to_fit() reduces capacity to current size rounded up to page size",
           "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_pages{2}, {1});
+  auto v = pinned_vector<int>(max_pages(2), {1});
   auto page_size = v.page_size();
   REQUIRE(page_size > 0);
   CAPTURE(page_size);
@@ -124,7 +124,7 @@ TEST_CASE("pinned_vector::shrink_to_fit() reduces capacity to current size round
 
 TEST_CASE("pinned_vector::shrink_to_fit() does not change iterators", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_pages{2}, {1});
+  auto v = pinned_vector<int>(max_pages(2), {1});
   auto page_size = v.page_size();
   REQUIRE(page_size > 0);
   CAPTURE(page_size);
@@ -140,7 +140,7 @@ TEST_CASE("pinned_vector::shrink_to_fit() does not change iterators", "[pinned_v
 
 TEST_CASE("pinned_vector::empty()", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_elements{10});
+  auto v = pinned_vector<int>(max_elements(10));
   REQUIRE(v.empty() == true);
   v.push_back(1);
   REQUIRE(v.empty() == false);
@@ -157,7 +157,7 @@ TEST_CASE("pinned_vector capacity grows geometrically according to growth_factor
       using growth_factor = decltype(factor);
     };
 
-    auto v = pinned_vector<int, traits>(num_pages{100});
+    auto v = pinned_vector<int, traits>(max_pages(100));
     auto page_size = v.page_size();
     REQUIRE(page_size > 0);
     CAPTURE(page_size);
@@ -191,7 +191,7 @@ TEST_CASE("pinned_vector capacity grows geometrically according to growth_factor
 
 TEST_CASE("pinned_vector::resize() without a default value", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_elements{12345});
+  auto v = pinned_vector<int>(max_elements(12345));
   REQUIRE(v.size() == 0);
 
   v.resize(10);
@@ -212,7 +212,7 @@ TEST_CASE("pinned_vector::resize() without a default value", "[pinned_vector][ca
 
 TEST_CASE("pinned_vector::resize() with a default value", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_elements{12345});
+  auto v = pinned_vector<int>(max_elements(12345));
   REQUIRE(v.size() == 0);
 
   v.resize(10);
@@ -242,7 +242,7 @@ TEST_CASE("pinned_vector::resize() with a default value", "[pinned_vector][capac
 
 TEST_CASE("pinned_vector::resize() does not move the memory buffer", "[pinned_vector][capacity]")
 {
-  auto v = pinned_vector<int>(num_elements{12345});
+  auto v = pinned_vector<int>(max_elements(12345));
   auto data = v.data();
   auto begin = v.begin();
 
@@ -277,7 +277,7 @@ TEST_CASE("pinned_vector::resize() has strong exception guarantee if committing 
   alloc.expect_commit(page, sizeof(page));
   alloc.expect_free(page);
 
-  auto v = pinned_vector<int, traits>(num_pages{2});
+  auto v = pinned_vector<int, traits>(max_pages(2));
   REQUIRE(v.max_size() == 8);
   REQUIRE(v.size() == 0);
 
