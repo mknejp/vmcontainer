@@ -45,7 +45,10 @@ struct mknejp::vmcontainer::vm::system_default
   static auto commit(void* offset, std::size_t num_bytes) -> void;
   static auto decommit(void* offset, std::size_t num_bytes) -> void;
 
-  static auto page_size() noexcept -> std::size_t;
+  static auto page_size() noexcept -> std::size_t { return _page_size; }
+
+private:
+  static std::size_t const _page_size;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

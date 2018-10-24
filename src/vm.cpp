@@ -89,13 +89,13 @@ auto mknejp::vmcontainer::vm::system_default::decommit(void* offset, std::size_t
 #endif
 }
 
-auto mknejp::vmcontainer::vm::system_default::page_size() noexcept -> std::size_t
-{
+std::size_t const mknejp::vmcontainer::vm::system_default::_page_size =
 #ifdef WIN32
-  auto info = SYSTEM_INFO{};
-  ::GetSystemInfo(&info);
-  return static_cast<std::size_t>(info.dwPageSize);
+  []() {
+    auto info = SYSTEM_INFO{};
+    ::GetSystemInfo(&info);
+    return static_cast<std::size_t>(info.dwPageSize);
+  }();
 #else
-  return static_cast<std::size_t>(::getpagesize());
+  static_cast<std::size_t>(::getpagesize());
 #endif
-}
