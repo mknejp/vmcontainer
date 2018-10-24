@@ -51,7 +51,7 @@ TEST_CASE("vm::reservation", "[reservation]")
     {
       char block[100];
       alloc.expect_reserve(block, 100);
-      auto vmr = reservation(100);
+      auto vmr = reservation(num_bytes(100));
       CHECK(alloc.reservations() == 1);
       CHECK(alloc.reserve_calls() == 1);
       CHECK(alloc.free_calls() == 0);
@@ -68,7 +68,7 @@ TEST_CASE("vm::reservation", "[reservation]")
   {
     char block[100];
     alloc.expect_reserve(block, 100);
-    auto vmr = reservation(1);
+    auto vmr = reservation(num_bytes(1));
     CHECK(vmr.base() == block);
     CHECK(vmr.reserved_bytes() == 100);
     alloc.expect_free(block);
@@ -79,7 +79,7 @@ TEST_CASE("vm::reservation", "[reservation]")
     {
       char block[100];
       alloc.expect_reserve(block, 100);
-      auto vmr1 = reservation(100);
+      auto vmr1 = reservation(num_bytes(100));
 
       auto vmr2 = std::move(vmr1);
       CHECK(alloc.reservations() == 1);
@@ -102,11 +102,11 @@ TEST_CASE("vm::reservation", "[reservation]")
       char block1[100];
       char block2[200];
       alloc.expect_reserve(block1, 100);
-      auto vmr1 = reservation(100);
+      auto vmr1 = reservation(num_bytes(100));
 
       alloc.expect_free(block1);
       alloc.expect_reserve(block2, 200);
-      auto vmr2 = reservation(200);
+      auto vmr2 = reservation(num_bytes(200));
 
       vmr1 = std::move(vmr2);
       CHECK(alloc.reservations() == 1);
@@ -127,7 +127,7 @@ TEST_CASE("vm::reservation", "[reservation]")
   {
     char block[100];
     alloc.expect_reserve(block, 100);
-    auto vmr1 = reservation(100);
+    auto vmr1 = reservation(num_bytes(100));
 
 #ifdef __clang__
 #  pragma clang diagnostic push
@@ -153,10 +153,10 @@ TEST_CASE("vm::reservation", "[reservation]")
       char block1[100];
       char block2[200];
       alloc.expect_reserve(block1, 100);
-      auto vmr1 = reservation(100);
+      auto vmr1 = reservation(num_bytes(100));
       {
         alloc.expect_reserve(block2, 200);
-        auto vmr2 = reservation(200);
+        auto vmr2 = reservation(num_bytes(200));
 
         using std::swap;
         static_assert(noexcept(swap(vmr1, vmr2)), "reservation::swap() is not noexcept");

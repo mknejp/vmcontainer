@@ -60,8 +60,9 @@ class mknejp::vmcontainer::detail::reservation
 {
 public:
   reservation() = default;
-  explicit reservation(std::size_t num_bytes)
+  explicit reservation(reservation_size_t reserved_bytes)
   {
+    auto num_bytes = reserved_bytes.num_bytes(VirtualMemorySystem::page_size());
     if(num_bytes > 0)
     {
       num_bytes = round_up(num_bytes, VirtualMemorySystem::page_size());
@@ -97,9 +98,7 @@ class mknejp::vmcontainer::detail::page_stack
 {
 public:
   page_stack() = default;
-  explicit page_stack(reservation_size_t reserved_bytes)
-    : _reservation(reserved_bytes.num_bytes(VirtualMemorySystem::page_size()))
-  {}
+  explicit page_stack(reservation_size_t reserved_bytes) : _reservation(reserved_bytes) {}
 
   auto commit(std::size_t bytes) -> void
   {
