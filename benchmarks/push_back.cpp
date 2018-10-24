@@ -82,6 +82,7 @@ static auto baseline_push_back(benchmark::State& state, tag<Vector>, T x)
   auto const max_size = static_cast<typename Vector::size_type>(state.range(0)) / sizeof(T);
   auto v = init_vector(max_size, tag<Vector>());
   v.reserve(max_size);
+  benchmark::DoNotOptimize(v.data());
 
   for(auto _: state)
   {
@@ -89,12 +90,12 @@ static auto baseline_push_back(benchmark::State& state, tag<Vector>, T x)
     // Do not count reserve + destructor
     auto start = std::chrono::high_resolution_clock::now();
     std::fill_n(std::back_inserter(v), max_size, x);
+    benchmark::ClobberMemory();
     auto end = std::chrono::high_resolution_clock::now();
 
     state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
     v.clear();
   }
-  benchmark::DoNotOptimize(v.end());
 }
 
 // trivially copyable types
@@ -123,10 +124,11 @@ static auto push_back(benchmark::State& state, tag<Vector>, T x)
     // Do not count destructor
     auto start = std::chrono::high_resolution_clock::now();
     std::fill_n(std::back_inserter(v), max_size, x);
+    benchmark::DoNotOptimize(v.data());
+    benchmark::ClobberMemory();
     auto end = std::chrono::high_resolution_clock::now();
 
     state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
-    benchmark::DoNotOptimize(v.end());
   }
 }
 
