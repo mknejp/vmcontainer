@@ -32,19 +32,43 @@ namespace
     return pinned_vector<T>(max_elements(max_size));
   }
 
-  constexpr auto max_memory_bytes = std::size_t(4) * 1024 * 1024 * 1024;
+  auto const max_bytes_tests = {
+    std::int64_t(64),
+    std::int64_t(128),
+    std::int64_t(256),
+    std::int64_t(512),
+    std::int64_t(1) * 1024,
+    std::int64_t(4) * 1024,
+    std::int64_t(16) * 1024,
+    std::int64_t(64) * 1024,
+    std::int64_t(128) * 1024,
+    std::int64_t(512) * 1024,
+    std::int64_t(1) * 1024 * 1024,
+    std::int64_t(4) * 1024 * 1024,
+    std::int64_t(16) * 1024 * 1024,
+    std::int64_t(64) * 1024 * 1024,
+    std::int64_t(128) * 1024 * 1024,
+    std::int64_t(512) * 1024 * 1024,
+    std::int64_t(1) * 1024 * 1024 * 1024,
+    std::int64_t(2) * 1024 * 1024 * 1024,
+    std::int64_t(4) * 1024 * 1024 * 1024,
+  };
 
-  auto configure_all(benchmark::internal::Benchmark* b) -> void { b->UseManualTime()->Unit(benchmark::kNanosecond); }
-  auto configure_int(benchmark::internal::Benchmark* b) -> void
+  template<typename T>
+  auto configure_generic(benchmark::internal::Benchmark* b)
   {
-    configure_all(b);
-    b->RangeMultiplier(5)->Range(1, max_memory_bytes / sizeof(int));
+    b->UseManualTime()->Unit(benchmark::kNanosecond);
+    for(auto max_bytes: max_bytes_tests)
+    {
+      if(max_bytes / sizeof(T) > 0)
+      {
+        b->Arg(max_bytes);
+      }
+    }
   }
-  auto configure_string(benchmark::internal::Benchmark* b) -> void
-  {
-    configure_all(b);
-    b->RangeMultiplier(5)->Range(1, max_memory_bytes / sizeof(std::string));
-  }
+
+  auto configure_int(benchmark::internal::Benchmark* b) { configure_generic<int>(b); }
+  auto configure_string(benchmark::internal::Benchmark* b) { configure_generic<std::string>(b); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,9 +77,9 @@ namespace
 
 // Establish a test baseline by only doing push_back without any allocations
 template<typename Vector, typename T>
-static void baseline_push_back(benchmark::State& state, tag<Vector>, T x)
+static auto baseline_push_back(benchmark::State& state, tag<Vector>, T x)
 {
-  auto max_size = static_cast<typename Vector::size_type>(state.range(0));
+  auto const max_size = static_cast<typename Vector::size_type>(state.range(0)) / sizeof(T);
   auto v = init_vector(max_size, tag<Vector>());
   v.reserve(max_size);
 
@@ -88,12 +112,12 @@ BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<string>, tag<pinned_vector<s
 //
 
 template<typename Vector, typename T>
-static void push_back(benchmark::State& state, tag<Vector>, T x)
+static auto push_back(benchmark::State& state, tag<Vector>, T x)
 {
+  auto const max_size = static_cast<typename Vector::size_type>(state.range(0)) / sizeof(T);
   for(auto _: state)
   {
     (void)_;
-    auto max_size = static_cast<typename Vector::size_type>(state.range(0));
     auto v = init_vector(max_size, tag<Vector>());
 
     // Do not count destructor
