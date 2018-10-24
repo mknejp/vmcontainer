@@ -32,6 +32,11 @@ namespace
     return pinned_vector<T>(max_elements(max_size));
   }
 
+  struct big_value
+  {
+    double a, b, c, d, e, f, g, h, i, j;
+  };
+
   auto const max_bytes_tests = {
     std::int64_t(64),
     std::int64_t(128),
@@ -69,6 +74,7 @@ namespace
 
   auto configure_int(benchmark::internal::Benchmark* b) { configure_generic<int>(b); }
   auto configure_string(benchmark::internal::Benchmark* b) { configure_generic<std::string>(b); }
+  auto configure_array(benchmark::internal::Benchmark* b) { configure_generic<big_value>(b); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,6 +107,17 @@ static auto baseline_push_back(benchmark::State& state, tag<Vector>, T x)
 // trivially copyable types
 BENCHMARK_CAPTURE(baseline_push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_int);
 BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_int);
+
+BENCHMARK_CAPTURE(baseline_push_back,
+                  std::vector<big_value>,
+                  tag<std::vector<big_value>>(),
+                  big_value{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
+  ->Apply(configure_array);
+BENCHMARK_CAPTURE(baseline_push_back,
+                  pinned_vector<big_value>,
+                  tag<pinned_vector<big_value>>(),
+                  big_value{1, 2, 3, 4, 5, 6, 7, 8, 9})
+  ->Apply(configure_array);
 
 // std::string with small string optimization
 BENCHMARK_CAPTURE(baseline_push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
@@ -135,6 +152,17 @@ static auto push_back(benchmark::State& state, tag<Vector>, T x)
 // trivially copyable types
 BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_int);
 BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_int);
+
+BENCHMARK_CAPTURE(push_back,
+                  std::vector<big_value>,
+                  tag<std::vector<big_value>>(),
+                  big_value{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
+  ->Apply(configure_array);
+BENCHMARK_CAPTURE(push_back,
+                  pinned_vector<big_value>,
+                  tag<pinned_vector<big_value>>(),
+                  big_value{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
+  ->Apply(configure_array);
 
 // std::string with small string optimization
 BENCHMARK_CAPTURE(push_back, std::vector<string>, tag<std::vector<std::string>>(), std::string("abcd"))
