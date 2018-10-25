@@ -225,6 +225,26 @@ TEST_CASE("pinned_vector move assignment", "[pinned_vector][special]")
   REQUIRE(capture_value_state(b) == a_state);
 }
 
+TEST_CASE("pinned_vector destructor destroys its elements", "[pinned_vector][special]")
+{
+  static std::vector<std::uintptr_t> constructed;
+  static std::vector<std::uintptr_t> destroyed;
+
+  struct tracker
+  {
+    tracker() { constructed.push_back(reinterpret_cast<std::uintptr_t>(this)); }
+    ~tracker() { destroyed.push_back(reinterpret_cast<std::uintptr_t>(this)); }
+  };
+
+  {
+    auto vec = pinned_vector<tracker>(max_elements(10), 10);
+
+    REQUIRE(vec.size() == 10);
+    REQUIRE(constructed.size() == 10);
+  }
+  REQUIRE(std::equal(constructed.begin(), constructed.end(), destroyed.begin(), destroyed.end()));
+}
+
 TEST_CASE("pinned_vector assignment operator with initializer_list", "[pinned_vector][special]")
 {
   auto v = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
