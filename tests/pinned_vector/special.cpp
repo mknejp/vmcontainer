@@ -13,6 +13,7 @@
 #include <list>
 #include <sstream>
 #include <type_traits>
+#include <vector>
 
 using namespace mknejp::vmcontainer;
 using namespace vmcontainer_test;
@@ -125,14 +126,28 @@ TEST_CASE("pinned_vector construction from a count and value", "[pinned_vector][
   CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 5; }));
 }
 
-TEST_CASE("pinned_vector construction from a count", "[pinned_vector][special]")
+TEST_CASE("pinned_vector construction from a count uses only default constructor", "[pinned_vector][special]")
 {
-  auto v = pinned_vector<int>(max_elements(10), 10);
+  static std::vector<void*> constructed;
 
+  struct default_constructible
+  {
+    default_constructible() { constructed.push_back(this); }
+    default_constructible(default_constructible const&) = delete;
+    default_constructible& operator=(default_constructible const&) = delete;
+  };
+
+  auto v = pinned_vector<default_constructible>(max_elements(10), 10);
+
+  CHECK(constructed.size() == 10);
   CHECK(v.size() == 10);
   CHECK(v.empty() == false);
-  CHECK(std::distance(v.begin(), v.end()) == 10);
-  CHECK(std::all_of(v.begin(), v.end(), [](int x) { return x == 0; }));
+
+  for(std::size_t i = 0; i < v.size(); ++i)
+  {
+    CAPTURE(i);
+    REQUIRE(constructed[i] == &v[i]);
+  }
 }
 
 TEST_CASE("pinned_vector constructed with elements has capacity rounded up to page size", "[pinned_vector][special]")

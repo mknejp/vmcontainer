@@ -83,7 +83,12 @@ public:
     insert(end(), count, value);
   }
 
-  pinned_vector(max_size_t max_size, size_type count) : pinned_vector(max_size) { insert(end(), count, T{}); }
+  template<typename U = T, typename = typename std::enable_if<std::is_default_constructible<U>::value>::type>
+  pinned_vector(max_size_t max_size, size_type count) : pinned_vector(max_size)
+  {
+    reserve(count);
+    _end = detail::uninitialized_default_construct_n(data(), count);
+  }
 
   // Special members
   pinned_vector(pinned_vector const& other) : _storage(num_bytes(other._storage.reserved_bytes()))
