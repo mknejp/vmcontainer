@@ -200,6 +200,27 @@ TEST_CASE("pinned_vector copy assignment", "[pinned_vector][special]")
   CHECK(std::equal(a.begin(), a.end(), b.begin(), b.end()));
 }
 
+TEST_CASE("pinned_vector copy assignment destroys old elements", "[pinned_vector][special]")
+{
+  static std::vector<std::uintptr_t> constructed;
+  static std::vector<std::uintptr_t> destroyed;
+
+  struct tracker
+  {
+    tracker() { constructed.push_back(reinterpret_cast<std::uintptr_t>(this)); }
+    ~tracker() { destroyed.push_back(reinterpret_cast<std::uintptr_t>(this)); }
+  };
+
+  auto a = pinned_vector<tracker>(max_elements(10), 10);
+  auto b = pinned_vector<tracker>(max_elements(10), 10);
+
+  REQUIRE(constructed.size() == 20);
+  b = a;
+  REQUIRE(destroyed.size() == 10);
+
+  REQUIRE(std::equal(constructed.begin() + 10, constructed.begin() + 20, destroyed.begin(), destroyed.end()));
+}
+
 TEST_CASE("pinned_vector move construction", "[pinned_vector][special]")
 {
   auto a = pinned_vector<int>(max_elements(10), {0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
@@ -223,6 +244,27 @@ TEST_CASE("pinned_vector move assignment", "[pinned_vector][special]")
   REQUIRE(a.size() == 0);
   REQUIRE(a.empty() == true);
   REQUIRE(capture_value_state(b) == a_state);
+}
+
+TEST_CASE("pinned_vector move assignment destroys old elements", "[pinned_vector][special]")
+{
+  static std::vector<std::uintptr_t> constructed;
+  static std::vector<std::uintptr_t> destroyed;
+
+  struct tracker
+  {
+    tracker() { constructed.push_back(reinterpret_cast<std::uintptr_t>(this)); }
+    ~tracker() { destroyed.push_back(reinterpret_cast<std::uintptr_t>(this)); }
+  };
+
+  auto a = pinned_vector<tracker>(max_elements(10), 10);
+  auto b = pinned_vector<tracker>(max_elements(10), 10);
+
+  REQUIRE(constructed.size() == 20);
+  b = std::move(a);
+  REQUIRE(destroyed.size() == 10);
+
+  REQUIRE(std::equal(constructed.begin() + 10, constructed.begin() + 20, destroyed.begin(), destroyed.end()));
 }
 
 TEST_CASE("pinned_vector destructor destroys its elements", "[pinned_vector][special]")

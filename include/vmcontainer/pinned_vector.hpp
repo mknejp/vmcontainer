@@ -105,7 +105,12 @@ public:
     }
     return *this;
   }
-  pinned_vector& operator=(pinned_vector&& other) & = default;
+  pinned_vector& operator=(pinned_vector&& other) & noexcept
+  {
+    auto temp = std::move(other);
+    swap(temp);
+    return *this;
+  }
   pinned_vector& operator=(std::initializer_list<T> init) &
   {
     assign(init);
