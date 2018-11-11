@@ -78,6 +78,7 @@ public:
     insert(end(), first, last);
   }
 
+  template<typename U = T, typename = typename std::enable_if<std::is_copy_constructible<U>::value>::type>
   pinned_vector(max_size_t max_size, size_type count, T const& value) : pinned_vector(max_size)
   {
     insert(end(), count, value);
