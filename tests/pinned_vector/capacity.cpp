@@ -153,7 +153,7 @@ TEST_CASE("pinned_vector capacity grows geometrically according to growth_factor
   auto test = [](auto factor) {
     struct traits
     {
-      using page_stack = pinned_vector_traits::page_stack;
+      using commit_stack = pinned_vector_traits::commit_stack;
       using growth_factor = decltype(factor);
     };
 

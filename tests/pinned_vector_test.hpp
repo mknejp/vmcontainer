@@ -13,7 +13,7 @@ namespace vmcontainer_test
   template<typename Alloc>
   struct pinned_vector_test_traits
   {
-    using page_stack = mknejp::vmcontainer::detail::page_stack<typename Alloc::vm_stub>;
+    using commit_stack = mknejp::vmcontainer::detail::commit_stack<typename Alloc::vm_stub>;
     using growth_factor = typename mknejp::vmcontainer::pinned_vector_traits::growth_factor;
   };
 

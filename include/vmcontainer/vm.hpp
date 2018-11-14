@@ -20,7 +20,7 @@ namespace mknejp
       struct system_default;
 
       class reservation;
-
+      class commit_stack;
       class page_stack;
     }
     namespace detail
@@ -30,6 +30,9 @@ namespace mknejp
 
       template<typename VirtualMemorySystem>
       class page_stack;
+
+      template<typename VirtualMemorySystem>
+      class commit_stack;
     }
   }
 }
@@ -90,6 +93,48 @@ class mknejp::vmcontainer::vm::reservation : public detail::reservation<system_d
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// commit_stack
+//
+
+template<typename VirtualMemorySystem>
+class mknejp::vmcontainer::detail::commit_stack
+{
+public:
+  commit_stack() = default;
+  explicit commit_stack(reservation_size_t reserved_bytes) : _reservation(reserved_bytes) {}
+  explicit commit_stack(reservation<VirtualMemorySystem> reservation) : _reservation(std::move(reservation)) {}
+
+  auto commit(std::size_t new_bytes) -> std::size_t
+  {
+    new_bytes = round_up(new_bytes, page_size());
+    if(new_bytes > committed_bytes())
+    {
+      VirtualMemorySystem::commit(static_cast<char*>(base()) + committed_bytes(), new_bytes - committed_bytes());
+    }
+    else if(new_bytes < committed_bytes())
+    {
+      VirtualMemorySystem::decommit(static_cast<char*>(base()) + new_bytes, committed_bytes() - new_bytes);
+    }
+    _committed_bytes = new_bytes;
+    return committed_bytes();
+  }
+
+  auto base() const noexcept -> void* { return _reservation.base(); }
+  auto committed_bytes() const noexcept -> std::size_t { return _committed_bytes; }
+  auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
+  auto page_size() const noexcept -> std::size_t { return VirtualMemorySystem::page_size(); }
+
+private:
+  reservation<VirtualMemorySystem> _reservation;
+  value_init_when_moved_from<std::size_t> _committed_bytes = 0;
+};
+
+class mknejp::vmcontainer::vm::commit_stack : public detail::commit_stack<system_default>
+{
+  using detail::commit_stack<system_default>::commit_stack;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // page_stack
 //
 
@@ -97,6 +142,8 @@ template<typename VirtualMemorySystem>
 class mknejp::vmcontainer::detail::page_stack
 {
 public:
+  using reservation_type = reservation<VirtualMemorySystem>;
+
   page_stack() = default;
   explicit page_stack(reservation_size_t reserved_bytes) : _reservation(reserved_bytes) {}
 
@@ -143,8 +190,11 @@ public:
   auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
   auto page_size() const noexcept -> std::size_t { return VirtualMemorySystem::page_size(); }
 
+  auto reservation() const & noexcept -> reservation_type const& { return _reservation; }
+  auto reservation() && noexcept -> reservation_type&& { return std::move(_reservation); }
+
 private:
-  reservation<VirtualMemorySystem> _reservation;
+  reservation_type _reservation;
   value_init_when_moved_from<std::size_t> _committed_bytes = 0;
 };
 

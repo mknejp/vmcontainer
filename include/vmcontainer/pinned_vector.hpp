@@ -33,7 +33,7 @@ namespace mknejp
 
 struct mknejp::vmcontainer::pinned_vector_traits
 {
-  using page_stack = vm::page_stack;
+  using commit_stack = vm::commit_stack;
   using growth_factor = std::ratio<2, 1>;
 };
 
@@ -221,7 +221,7 @@ public:
     assert(new_cap <= max_size());
     if(new_cap > capacity())
     {
-      _storage.commit(new_cap * sizeof(T) - _storage.committed_bytes());
+      _storage.commit(new_cap * sizeof(T));
     }
   }
   auto capacity() const noexcept -> size_type { return _storage.committed_bytes() / sizeof(T); }
@@ -229,7 +229,7 @@ public:
   {
     if(capacity() > size())
     {
-      _storage.decommit(_storage.committed_bytes() - size() * sizeof(T));
+      _storage.commit(size() * sizeof(T));
     }
   }
   auto page_size() const noexcept -> std::size_t { return _storage.page_size(); }
@@ -438,7 +438,7 @@ private:
   auto to_pointer(const_iterator it) const noexcept -> T const* { return data() + (it - cbegin()); }
   auto to_pointer(const_iterator it) noexcept -> T* { return data() + (it - cbegin()); }
 
-  typename Traits::page_stack _storage;
+  typename Traits::commit_stack _storage;
   detail::value_init_when_moved_from<T*> _end = data();
 };
 
