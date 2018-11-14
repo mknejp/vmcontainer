@@ -6,6 +6,7 @@
 
 #include "bench-utils.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -39,6 +40,7 @@ namespace
   template<typename T>
   auto configure_runs(benchmark::internal::Benchmark* b)
   {
+    b->UseManualTime();
     b->Unit(benchmark::kNanosecond);
     for(auto max_bytes: max_bytes_tests)
     {
@@ -60,13 +62,17 @@ static auto push_back_copy_and_alloc(benchmark::State& state, T x)
   {
     (void)_;
     auto v = std::vector<T>();
+
+    // Do not count destructor
+    auto start = std::chrono::high_resolution_clock::now();
     std::fill_n(std::back_inserter(v), n, x);
     benchmark::DoNotOptimize(v.data());
     benchmark::ClobberMemory();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
   }
 }
-
-static constexpr auto max_size = std::int64_t(2) * 1024 * 1024 * 1024;
 
 // trivially copyable types
 BENCHMARK_CAPTURE(push_back_copy_and_alloc, int, 12345)->Apply(configure_runs<int>);
@@ -75,4 +81,4 @@ BENCHMARK_CAPTURE(push_back_copy_and_alloc, bigval, bigval{1, 2, 3, 4, 5, 6, 7, 
   ->Apply(configure_runs<bigval>);
 
 // std::string with small string optimization
-BENCHMARK_CAPTURE(push_back_copy_and_alloc, std::string, std::string("abcd"))->Apply(configure_runs<std::string>);
+BENCHMARK_CAPTURE(push_back_copy_and_alloc, small string, std::string("abcd"))->Apply(configure_runs<std::string>);

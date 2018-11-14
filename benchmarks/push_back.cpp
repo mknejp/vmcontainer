@@ -54,6 +54,7 @@ namespace
   template<typename T>
   auto configure_runs(benchmark::internal::Benchmark* b)
   {
+    b->UseManualTime();
     b->Unit(benchmark::kNanosecond);
     for(auto max_bytes: max_bytes_tests)
     {
@@ -93,36 +94,28 @@ static auto baseline_push_back(benchmark::State& state, tag<Vector>, T x)
 }
 
 // trivially copyable types
-BENCHMARK_CAPTURE(baseline_push_back, std::vector<int>, tag<std::vector<int>>(), 12345)
-  ->Apply(configure_runs<int>)
-  ->UseManualTime();
-BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)
-  ->Apply(configure_runs<int>)
-  ->UseManualTime();
+BENCHMARK_CAPTURE(baseline_push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_runs<int>);
+BENCHMARK_CAPTURE(baseline_push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_runs<int>);
 
 BENCHMARK_CAPTURE(baseline_push_back,
                   std::vector<bigval>,
                   tag<std::vector<bigval>>(),
                   bigval{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
-  ->Apply(configure_runs<bigval>)
-  ->UseManualTime();
+  ->Apply(configure_runs<bigval>);
 BENCHMARK_CAPTURE(baseline_push_back,
                   pinned_vector<bigval>,
                   tag<pinned_vector<bigval>>(),
                   bigval{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
-  ->Apply(configure_runs<bigval>)
-  ->UseManualTime();
+  ->Apply(configure_runs<bigval>);
 
 // std::string with small string optimization
 BENCHMARK_CAPTURE(baseline_push_back, std::vector<small string>, tag<std::vector<std::string>>(), std::string("abcd"))
-  ->Apply(configure_runs<std::string>)
-  ->UseManualTime();
+  ->Apply(configure_runs<std::string>);
 BENCHMARK_CAPTURE(baseline_push_back,
                   pinned_vector<small string>,
                   tag<pinned_vector<std::string>>(),
                   std::string("abcd"))
-  ->Apply(configure_runs<std::string>)
-  ->UseManualTime();
+  ->Apply(configure_runs<std::string>);
 
 ///////////////////////////////////////////////////////////////////////////////
 // push_back
@@ -149,24 +142,16 @@ static auto push_back(benchmark::State& state, tag<Vector>, T x)
 }
 
 // trivially copyable types
-BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)
-  ->Apply(configure_runs<int>)
-  ->UseManualTime();
-BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)
-  ->Apply(configure_runs<int>)
-  ->UseManualTime();
+BENCHMARK_CAPTURE(push_back, std::vector<int>, tag<std::vector<int>>(), 12345)->Apply(configure_runs<int>);
+BENCHMARK_CAPTURE(push_back, pinned_vector<int>, tag<pinned_vector<int>>(), 12345)->Apply(configure_runs<int>);
 
 BENCHMARK_CAPTURE(push_back, std::vector<bigval>, tag<std::vector<bigval>>(), bigval{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
-  ->Apply(configure_runs<bigval>)
-  ->UseManualTime();
+  ->Apply(configure_runs<bigval>);
 BENCHMARK_CAPTURE(push_back, pinned_vector<bigval>, tag<pinned_vector<bigval>>(), bigval{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})
-  ->Apply(configure_runs<bigval>)
-  ->UseManualTime();
+  ->Apply(configure_runs<bigval>);
 
 // std::string with small string optimization
 BENCHMARK_CAPTURE(push_back, std::vector<small string>, tag<std::vector<std::string>>(), std::string("abcd"))
-  ->Apply(configure_runs<std::string>)
-  ->UseManualTime();
+  ->Apply(configure_runs<std::string>);
 BENCHMARK_CAPTURE(push_back, pinned_vector<small string>, tag<pinned_vector<std::string>>(), std::string("abcd"))
-  ->Apply(configure_runs<std::string>)
-  ->UseManualTime();
+  ->Apply(configure_runs<std::string>);

@@ -6,6 +6,7 @@
 
 #include "bench-utils.hpp"
 
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ using namespace bench_utils;
 
 namespace
 {
-  auto alloc = bumb_allocator<char>(std::size_t(8) * 1024 * 1024 * 1024);
+  auto alloc = bumb_allocator<char>(std::size_t(9) * 1024 * 1024 * 1024);
 
   auto const max_bytes_tests = {
     std::int64_t(64),
@@ -41,6 +42,7 @@ namespace
   template<typename T>
   auto configure_runs(benchmark::internal::Benchmark* b)
   {
+    b->UseManualTime();
     b->Unit(benchmark::kNanosecond);
     for(auto max_bytes: max_bytes_tests)
     {
@@ -50,30 +52,37 @@ namespace
       }
     }
   }
-
 }
 
 template<typename T>
-static auto push_back_copy_only(benchmark::State& state, T x)
+static auto push_back_copy(benchmark::State& state, T x)
 {
   auto const max_size = static_cast<std::size_t>(state.range(0));
   auto const n = max_size / sizeof(T);
 
+  alloc.reset();
+
   for(auto _: state)
   {
     (void)_;
-    alloc.reset();
     auto v = std::vector<T, bumb_allocator<T>>(bumb_allocator<T>(alloc));
+
+    // Do not count destructor
+    auto start = std::chrono::high_resolution_clock::now();
     std::fill_n(std::back_inserter(v), n, x);
     benchmark::DoNotOptimize(v.data());
     benchmark::ClobberMemory();
+    auto end = std::chrono::high_resolution_clock::now();
+
+    state.SetIterationTime(std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count());
+    alloc.reset();
   }
 }
 
 // trivially copyable types
-BENCHMARK_CAPTURE(push_back_copy_only, int, 12345)->Apply(configure_runs<int>);
+BENCHMARK_CAPTURE(push_back_copy, int, 12345)->Apply(configure_runs<int>);
 
-BENCHMARK_CAPTURE(push_back_copy_only, bigval, bigval{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})->Apply(configure_runs<bigval>);
+BENCHMARK_CAPTURE(push_back_copy, bigval, bigval{1, 2, 3, 4, 5, 6, 7, 8, 9, 0})->Apply(configure_runs<bigval>);
 
 // std::string with small string optimization
-BENCHMARK_CAPTURE(push_back_copy_only, std::string, std::string("abcd"))->Apply(configure_runs<std::string>);
+BENCHMARK_CAPTURE(push_back_copy, small string, std::string("abcd"))->Apply(configure_runs<std::string>);
