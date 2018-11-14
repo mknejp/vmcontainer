@@ -67,7 +67,7 @@ namespace bench_utils
     template<typename U>
     bool operator==(bumb_allocator<U> const& other) const
     {
-      return static_cast<void*>(_buf) == static_cast<void*>(other._buf) && _size == other._size;
+      return _data == other._data;
     }
     template<typename U>
     bool operator!=(bumb_allocator const& other) const
