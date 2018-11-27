@@ -39,10 +39,6 @@ namespace mknejp
       auto destroy_at(T* p) -> void;
       template<typename ForwardIt>
       auto destroy(ForwardIt first, ForwardIt last) -> void;
-      template<typename ForwardIt, typename T>
-      auto uninitialized_fill_n(ForwardIt first, std::size_t count, T const& value) -> ForwardIt;
-      template<typename InputIt, typename ForwardIt>
-      auto uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt;
       template<typename InputIt, typename ForwardIt>
       auto uninitialized_move(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt;
       template<typename InputIt, typename ForwardIt>
@@ -211,44 +207,6 @@ auto mknejp::vmcontainer::detail::destroy(ForwardIt first, ForwardIt last) -> vo
   {
     destroy_at(std::addressof(*first));
   }
-}
-
-template<typename ForwardIt, typename T>
-auto mknejp::vmcontainer::detail::uninitialized_fill_n(ForwardIt first, std::size_t count, T const& value) -> ForwardIt
-{
-  auto current = first;
-  try
-  {
-    for(std::size_t i = 0; i < count; ++current, (void)++i)
-    {
-      construct_at(std::addressof(*current), value);
-    }
-  }
-  catch(...)
-  {
-    destroy(first, current);
-    throw;
-  }
-  return current;
-}
-
-template<typename InputIt, typename ForwardIt>
-auto mknejp::vmcontainer::detail::uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt
-{
-  auto current = d_first;
-  try
-  {
-    for(; first != last; ++first, (void)++current)
-    {
-      construct_at(std::addressof(*current), *first);
-    }
-  }
-  catch(...)
-  {
-    destroy(d_first, current);
-    throw;
-  }
-  return current;
 }
 
 template<typename InputIt, typename ForwardIt>

@@ -95,7 +95,7 @@ public:
   pinned_vector(pinned_vector const& other) : _storage(num_bytes(other._storage.reserved_bytes()))
   {
     _storage.resize(other.size() * sizeof(T));
-    _end = detail::uninitialized_copy(other.cbegin(), other.cend(), data());
+    _end = std::uninitialized_copy(other.cbegin(), other.cend(), data());
   }
   pinned_vector(pinned_vector&& other) = default;
   pinned_vector& operator=(pinned_vector const& other) &
@@ -394,9 +394,7 @@ public:
     if(count > old_size)
     {
       reserve(count);
-      auto const delta = count - old_size;
-      detail::uninitialized_fill_n(_end, count, value);
-      _end += delta;
+      _end = std::uninitialized_fill_n(_end.value, count - old_size, value);
     }
     else if(count < old_size)
     {
