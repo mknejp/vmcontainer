@@ -20,14 +20,14 @@ namespace mknejp
       struct system_default;
 
       class reservation;
+      template<typename VirtualMemorySystem>
+      class reservation_base;
+
       class commit_stack;
       class page_stack;
     }
     namespace detail
     {
-      template<typename VirtualMemorySystem>
-      class reservation;
-
       template<typename VirtualMemorySystem>
       class page_stack;
 
@@ -59,16 +59,16 @@ private:
 //
 
 template<typename VirtualMemorySystem>
-class mknejp::vmcontainer::detail::reservation
+class mknejp::vmcontainer::vm::reservation_base
 {
 public:
-  reservation() = default;
-  explicit reservation(reservation_size_t reserved_bytes)
+  reservation_base() = default;
+  explicit reservation_base(reservation_size_t reserved_bytes)
   {
     auto num_bytes = reserved_bytes.num_bytes(VirtualMemorySystem::page_size());
     if(num_bytes > 0)
     {
-      num_bytes = round_up(num_bytes, VirtualMemorySystem::page_size());
+      num_bytes = detail::round_up(num_bytes, VirtualMemorySystem::page_size());
       _reservation.reset(VirtualMemorySystem::reserve(num_bytes));
       _reservation.get_deleter().reserved_bytes = num_bytes;
     }
@@ -81,15 +81,15 @@ private:
   struct deleter
   {
     auto operator()(void* p) const -> void { VirtualMemorySystem::free(p, reserved_bytes); }
-    value_init_when_moved_from<std::size_t> reserved_bytes = 0;
+    detail::value_init_when_moved_from<std::size_t> reserved_bytes = 0;
   };
 
   std::unique_ptr<void, deleter> _reservation;
 };
 
-class mknejp::vmcontainer::vm::reservation : public detail::reservation<system_default>
+class mknejp::vmcontainer::vm::reservation final : public reservation_base<system_default>
 {
-  using detail::reservation<system_default>::reservation;
+  using reservation_base<system_default>::reservation_base;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

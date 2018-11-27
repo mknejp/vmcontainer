@@ -14,7 +14,7 @@
 
 using namespace mknejp::vmcontainer;
 
-static_assert(std::is_base_of<detail::reservation<vm::system_default>, vm::reservation>(), "");
+static_assert(std::is_base_of<vm::reservation_base<vm::system_default>, vm::reservation>(), "");
 
 static_assert(std::is_nothrow_default_constructible<vm::reservation>::value, "");
 static_assert(std::is_nothrow_move_constructible<vm::reservation>::value, "");
@@ -29,7 +29,7 @@ TEST_CASE("vm::reservation", "[reservation]")
 
   virtual_memory_system_stub::page_size = [] { return 100; };
 
-  using reservation = detail::reservation<virtual_memory_system_stub>;
+  using reservation = vm::reservation_base<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {
