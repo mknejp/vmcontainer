@@ -14,7 +14,7 @@
 
 using namespace mknejp::vmcontainer;
 
-static_assert(std::is_base_of<detail::page_stack<vm::system_default>, vm::page_stack>(), "");
+static_assert(std::is_base_of<vm::page_stack_base<vm::system_default>, vm::page_stack>(), "");
 
 static_assert(std::is_nothrow_default_constructible<vm::page_stack>::value, "");
 static_assert(std::is_nothrow_move_constructible<vm::page_stack>::value, "");
@@ -29,7 +29,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
 
   virtual_memory_system_stub::page_size = [] { return 100; };
 
-  using page_stack = detail::page_stack<virtual_memory_system_stub>;
+  using page_stack = vm::page_stack_base<virtual_memory_system_stub>;
 
   SECTION("default constructed has no reservation")
   {
@@ -98,7 +98,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
       alloc.expect_reserve(block, 1000);
       auto vmps1 = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 400);
-      vmps1.commit(400);
+      vmps1.resize(400);
 
       auto vmps2 = std::move(vmps1);
       CHECK(alloc.reservations() == 1);
@@ -129,13 +129,13 @@ TEST_CASE("vm::page_stack", "[page_stack]")
       alloc.expect_reserve(block1, 1000);
       auto vmps1 = page_stack(num_bytes(1000));
       alloc.expect_commit(block1, 400);
-      vmps1.commit(400);
+      vmps1.resize(400);
 
       {
         alloc.expect_reserve(block2, 2000);
         auto vmps2 = page_stack(num_bytes(2000));
         alloc.expect_commit(block2, 300);
-        vmps2.commit(300);
+        vmps2.resize(300);
 
         alloc.expect_free(block1);
         vmps1 = std::move(vmps2);
@@ -167,7 +167,7 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     alloc.expect_reserve(block, 1000);
     auto vmps = page_stack(num_bytes(1000));
     alloc.expect_commit(block, 400);
-    vmps.commit(400);
+    vmps.resize(400);
 
 #ifdef __clang__
 #  pragma clang diagnostic push
@@ -190,20 +190,20 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     alloc.expect_free(block);
   }
 
-  SECTION("single commit() and matching decommit()")
+  SECTION("single resize() and inverse resize()")
   {
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
       auto vmps = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 100);
-      vmps.commit(100);
+      vmps.resize(100);
       CHECK(vmps.committed_bytes() == 100);
       CHECK(alloc.commit_calls() == 1);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_decommit(block, 100);
-      vmps.decommit(100);
+      vmps.resize(0);
       CHECK(vmps.committed_bytes() == 0);
       CHECK(alloc.commit_calls() == 1);
       CHECK(alloc.decommit_calls() == 1);
@@ -216,38 +216,38 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     CHECK(alloc.commit_calls() == 1);
     CHECK(alloc.decommit_calls() == 1);
   }
-  SECTION("multiple commit() and decommit()")
+  SECTION("multiple growing and shrinking resize()")
   {
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
       auto vmps = page_stack(num_bytes(1000));
       alloc.expect_commit(block, 100);
-      vmps.commit(100);
+      vmps.resize(100);
       CHECK(vmps.committed_bytes() == 100);
       CHECK(alloc.commit_calls() == 1);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_commit(block + 100, 200);
-      vmps.commit(200);
+      vmps.resize(300);
       CHECK(vmps.committed_bytes() == 300);
       CHECK(alloc.commit_calls() == 2);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_decommit(block + 200, 100);
-      vmps.decommit(100);
+      vmps.resize(200);
       CHECK(vmps.committed_bytes() == 200);
       CHECK(alloc.commit_calls() == 2);
       CHECK(alloc.decommit_calls() == 1);
 
       alloc.expect_commit(block + 200, 200);
-      vmps.commit(200);
+      vmps.resize(400);
       CHECK(vmps.committed_bytes() == 400);
       CHECK(alloc.commit_calls() == 3);
       CHECK(alloc.decommit_calls() == 1);
 
       alloc.expect_decommit(block + 300, 100);
-      vmps.decommit(100);
+      vmps.resize(300);
       CHECK(vmps.committed_bytes() == 300);
       CHECK(alloc.commit_calls() == 3);
       CHECK(alloc.decommit_calls() == 2);
@@ -260,39 +260,43 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     CHECK(alloc.commit_calls() == 3);
     CHECK(alloc.decommit_calls() == 2);
   }
-  SECTION("commit() amount is rounded up to page size")
+  SECTION("resize() amount is rounded up to page size")
   {
     {
       char block[1000];
       alloc.expect_reserve(block, 1000);
       auto vmps = page_stack(num_bytes(1000));
-      vmps.commit(0);
+      vmps.resize(0);
       CHECK(vmps.committed_bytes() == 0);
       CHECK(alloc.commit_calls() == 0);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_commit(block, 100);
-      vmps.commit(1);
+      vmps.resize(1);
       CHECK(vmps.committed_bytes() == 100);
       CHECK(alloc.commit_calls() == 1);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_commit(block + 100, 100);
-      vmps.commit(99);
+      vmps.resize(199);
       CHECK(vmps.committed_bytes() == 200);
       CHECK(alloc.commit_calls() == 2);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_commit(block + 200, 200);
-      vmps.commit(101);
+      vmps.resize(301);
       CHECK(vmps.committed_bytes() == 400);
       CHECK(alloc.commit_calls() == 3);
       CHECK(alloc.decommit_calls() == 0);
 
-      alloc.expect_commit(block + 400, 200);
-      vmps.commit(199);
-      CHECK(vmps.committed_bytes() == 600);
-      CHECK(alloc.commit_calls() == 4);
+      vmps.resize(399);
+      CHECK(vmps.committed_bytes() == 400);
+      CHECK(alloc.commit_calls() == 3);
+      CHECK(alloc.decommit_calls() == 0);
+
+      vmps.resize(305);
+      CHECK(vmps.committed_bytes() == 400);
+      CHECK(alloc.commit_calls() == 3);
       CHECK(alloc.decommit_calls() == 0);
 
       alloc.expect_free(block);
@@ -300,55 +304,8 @@ TEST_CASE("vm::page_stack", "[page_stack]")
     CHECK(alloc.reservations() == 0);
     CHECK(alloc.reserve_calls() == 1);
     CHECK(alloc.free_calls() == 1);
-    CHECK(alloc.commit_calls() == 4);
+    CHECK(alloc.commit_calls() == 3);
     CHECK(alloc.decommit_calls() == 0);
-  }
-  SECTION("decommit() amount is rounded down to page size")
-  {
-    {
-      char block[1000];
-      alloc.expect_reserve(block, 1000);
-      auto vmps = page_stack(num_bytes(1000));
-      alloc.expect_commit(block, 400);
-      vmps.commit(400);
-      CHECK(vmps.committed_bytes() == 400);
-      CHECK(alloc.commit_calls() == 1);
-      CHECK(alloc.decommit_calls() == 0);
-
-      vmps.decommit(0);
-      CHECK(vmps.committed_bytes() == 400);
-      CHECK(alloc.commit_calls() == 1);
-      CHECK(alloc.decommit_calls() == 0);
-
-      vmps.decommit(1);
-      CHECK(vmps.committed_bytes() == 400);
-      CHECK(alloc.commit_calls() == 1);
-      CHECK(alloc.decommit_calls() == 0);
-
-      vmps.decommit(99);
-      CHECK(vmps.committed_bytes() == 400);
-      CHECK(alloc.commit_calls() == 1);
-      CHECK(alloc.decommit_calls() == 0);
-
-      alloc.expect_decommit(block + 300, 100);
-      vmps.decommit(101);
-      CHECK(vmps.committed_bytes() == 300);
-      CHECK(alloc.commit_calls() == 1);
-      CHECK(alloc.decommit_calls() == 1);
-
-      alloc.expect_decommit(block + 200, 100);
-      vmps.decommit(199);
-      CHECK(vmps.committed_bytes() == 200);
-      CHECK(alloc.commit_calls() == 1);
-      CHECK(alloc.decommit_calls() == 2);
-
-      alloc.expect_free(block);
-    }
-    CHECK(alloc.reservations() == 0);
-    CHECK(alloc.reserve_calls() == 1);
-    CHECK(alloc.free_calls() == 1);
-    CHECK(alloc.commit_calls() == 1);
-    CHECK(alloc.decommit_calls() == 2);
   }
 
   SECTION("swap")
@@ -359,13 +316,13 @@ TEST_CASE("vm::page_stack", "[page_stack]")
       alloc.expect_reserve(block1, 1000);
       auto vmps1 = page_stack(num_bytes(1000));
       alloc.expect_commit(block1, 400);
-      vmps1.commit(400);
+      vmps1.resize(400);
 
       {
         alloc.expect_reserve(block2, 2000);
         auto vmps2 = page_stack(num_bytes(2000));
         alloc.expect_commit(block2, 300);
-        vmps2.commit(300);
+        vmps2.resize(300);
 
         using std::swap;
         static_assert(noexcept(swap(vmps1, vmps2)), "page_stack::swap() is not noexcept");

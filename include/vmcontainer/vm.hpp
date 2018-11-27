@@ -25,12 +25,11 @@ namespace mknejp
 
       class commit_stack;
       class page_stack;
+      template<typename VirtualMemorySystem>
+      class page_stack_base;
     }
     namespace detail
     {
-      template<typename VirtualMemorySystem>
-      class page_stack;
-
       template<typename VirtualMemorySystem>
       class commit_stack;
     }
@@ -139,50 +138,26 @@ class mknejp::vmcontainer::vm::commit_stack : public detail::commit_stack<system
 //
 
 template<typename VirtualMemorySystem>
-class mknejp::vmcontainer::detail::page_stack
+class mknejp::vmcontainer::vm::page_stack_base
 {
 public:
-  using reservation_type = reservation<VirtualMemorySystem>;
+  page_stack_base() = default;
+  explicit page_stack_base(reservation_size_t reserved_bytes) : _reservation(reserved_bytes) {}
+  explicit page_stack_base(reservation_base<VirtualMemorySystem> reservation) : _reservation(std::move(reservation)) {}
 
-  page_stack() = default;
-  explicit page_stack(reservation_size_t reserved_bytes) : _reservation(reserved_bytes) {}
-
-  auto commit(std::size_t bytes) -> void
+  auto resize(std::size_t new_bytes) -> std::size_t
   {
-    if(bytes > 0)
+    new_bytes = detail::round_up(new_bytes, page_size());
+    if(new_bytes > committed_bytes())
     {
-      auto const new_committed = round_up(committed_bytes() + bytes, page_size());
-      assert(new_committed <= reserved_bytes());
-      VirtualMemorySystem::commit(static_cast<char*>(base()) + committed_bytes(), new_committed - committed_bytes());
-      _committed_bytes = new_committed;
+      VirtualMemorySystem::commit(static_cast<char*>(base()) + committed_bytes(), new_bytes - committed_bytes());
     }
-  }
-
-  auto decommit(std::size_t bytes) -> void
-  {
-    if(bytes > 0)
+    else if(new_bytes < committed_bytes())
     {
-      assert(bytes <= committed_bytes());
-      auto const new_committed = round_up(committed_bytes() - bytes, page_size());
-      if(new_committed < committed_bytes())
-      {
-        VirtualMemorySystem::decommit(static_cast<char*>(base()) + new_committed, committed_bytes() - new_committed);
-        _committed_bytes = new_committed;
-      }
+      VirtualMemorySystem::decommit(static_cast<char*>(base()) + new_bytes, committed_bytes() - new_bytes);
     }
-  }
-
-  auto resize(std::size_t new_size) -> void
-  {
-    assert(new_size <= reserved_bytes());
-    if(new_size < committed_bytes())
-    {
-      decomit(committed_bytes() - new_size);
-    }
-    else if(new_size > committed_bytes())
-    {
-      commit(new_size - committed_bytes());
-    }
+    _committed_bytes = new_bytes;
+    return committed_bytes();
   }
 
   auto base() const noexcept -> void* { return _reservation.base(); }
@@ -190,15 +165,12 @@ public:
   auto reserved_bytes() const noexcept -> std::size_t { return _reservation.reserved_bytes(); }
   auto page_size() const noexcept -> std::size_t { return VirtualMemorySystem::page_size(); }
 
-  auto reservation() const & noexcept -> reservation_type const& { return _reservation; }
-  auto reservation() && noexcept -> reservation_type&& { return std::move(_reservation); }
-
 private:
-  reservation_type _reservation;
-  value_init_when_moved_from<std::size_t> _committed_bytes = 0;
+  reservation_base<VirtualMemorySystem> _reservation;
+  detail::value_init_when_moved_from<std::size_t> _committed_bytes = 0;
 };
 
-class mknejp::vmcontainer::vm::page_stack : public detail::page_stack<system_default>
+class mknejp::vmcontainer::vm::page_stack final : public page_stack_base<system_default>
 {
-  using detail::page_stack<system_default>::page_stack;
+  using page_stack_base<system_default>::page_stack_base;
 };
