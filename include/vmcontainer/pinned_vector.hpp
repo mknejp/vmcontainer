@@ -33,7 +33,7 @@ namespace mknejp
 
 struct mknejp::vmcontainer::pinned_vector_traits
 {
-  using commit_stack = vm::page_stack;
+  using storage_type = vm::page_stack;
   using growth_factor = std::ratio<2, 1>;
 };
 
@@ -61,6 +61,9 @@ public:
   using const_iterator = T const*;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+  using traits_type = Traits;
+  using storage_type = typename Traits::storage_type;
 
   // constructors
   pinned_vector() = default;
@@ -435,7 +438,7 @@ private:
   auto to_pointer(const_iterator it) const noexcept -> T const* { return data() + (it - cbegin()); }
   auto to_pointer(const_iterator it) noexcept -> T* { return data() + (it - cbegin()); }
 
-  typename Traits::commit_stack _storage;
+  storage_type _storage;
   detail::value_init_when_moved_from<T*> _end = data();
 };
 
