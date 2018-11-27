@@ -1,24 +1,14 @@
+# This file is intended for use by library developers/maintainers.
+# It declares targets for unit tests and benchmarks.
+# If you only want to use the library consume lib/CMakeLists.txt instead.
+
 cmake_minimum_required(VERSION 3.10)
 
 project(vmcontainer)
 
-add_library(
-  vmcontainer
-    src/vm.cpp
-    include/vmcontainer/detail.hpp
-    include/vmcontainer/pinned_vector.hpp
-    include/vmcontainer/vm.hpp
-    )
+enable_testing()
 
-target_include_directories(vmcontainer PUBLIC include)
-target_compile_features(vmcontainer PUBLIC cxx_std_14)
+add_subdirectory(lib)
 
-include(CTest)
-if(BUILD_TESTING)
-    add_subdirectory(tests)
-endif()
-
-option(WITH_VMCONTAINER_BENCHMARKS OFF "Enable to include targets for vmcontainer benchmark applications.")
-if(WITH_VMCONTAINER_BENCHMARKS)
-  add_subdirectory(benchmarks)
-endif()
+add_subdirectory(benchmarks)
+add_subdirectory(tests)
