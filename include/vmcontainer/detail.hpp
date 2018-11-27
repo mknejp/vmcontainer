@@ -203,10 +203,7 @@ auto mknejp::vmcontainer::detail::destroy_at(T* p) -> void
 template<typename ForwardIt>
 auto mknejp::vmcontainer::detail::destroy(ForwardIt first, ForwardIt last) -> void
 {
-  for(; first != last; ++first)
-  {
-    destroy_at(std::addressof(*first));
-  }
+  std::for_each(first, last, [](auto& x) { destroy_at(std::addressof(x)); });
 }
 
 template<typename InputIt, typename ForwardIt>
