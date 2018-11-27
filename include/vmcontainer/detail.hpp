@@ -44,7 +44,7 @@ namespace mknejp
       template<typename InputIt, typename ForwardIt>
       auto uninitialized_move_n(InputIt first, std::size_t count, ForwardIt d_first) -> std::pair<InputIt, ForwardIt>;
       template<typename ForwardIt>
-      auto uninitialized_default_construct_n(ForwardIt first, std::size_t count) -> ForwardIt;
+      auto uninitialized_value_construct_n(ForwardIt first, std::size_t count) -> ForwardIt;
     }
   }
 }
@@ -249,7 +249,7 @@ auto mknejp::vmcontainer::detail::uninitialized_move_n(InputIt first, std::size_
 }
 
 template<typename ForwardIt>
-auto mknejp::vmcontainer::detail::uninitialized_default_construct_n(ForwardIt first, std::size_t count) -> ForwardIt
+auto mknejp::vmcontainer::detail::uninitialized_value_construct_n(ForwardIt first, std::size_t count) -> ForwardIt
 {
   auto current = first;
   try

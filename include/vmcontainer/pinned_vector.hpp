@@ -88,7 +88,7 @@ public:
   pinned_vector(max_size_t max_size, size_type count) : pinned_vector(max_size)
   {
     reserve(count);
-    _end = detail::uninitialized_default_construct_n(data(), count);
+    _end = detail::uninitialized_value_construct_n(data(), count);
   }
 
   // Special members
@@ -376,7 +376,7 @@ public:
     if(count > size())
     {
       reserve(count);
-      _end = detail::uninitialized_default_construct_n(_end.value, count - size());
+      _end = detail::uninitialized_value_construct_n(_end.value, count - size());
     }
     else if(count < size())
     {
