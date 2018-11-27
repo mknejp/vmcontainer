@@ -371,6 +371,7 @@ public:
     assert(!empty());
     detail::destroy_at(--_end);
   }
+  template<typename U = T, typename = typename std::enable_if<std::is_default_constructible<U>::value>::type>
   auto resize(size_type count) -> void
   {
     if(count > size())
