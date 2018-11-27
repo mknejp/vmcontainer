@@ -375,10 +375,8 @@ public:
   {
     if(count > size())
     {
-      auto const delta = count - size();
       reserve(count);
-      detail::uninitialized_default_construct_n(_end, delta);
-      _end += delta;
+      _end = detail::uninitialized_default_construct_n(_end.value, count - size());
     }
     else if(count < size())
     {
