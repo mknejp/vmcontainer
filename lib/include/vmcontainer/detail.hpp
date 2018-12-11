@@ -209,20 +209,7 @@ auto mknejp::vmcontainer::detail::destroy(ForwardIt first, ForwardIt last) -> vo
 template<typename InputIt, typename ForwardIt>
 auto mknejp::vmcontainer::detail::uninitialized_move(InputIt first, InputIt last, ForwardIt d_first) -> ForwardIt
 {
-  auto current = d_first;
-  try
-  {
-    for(; first != last; ++first, (void)++current)
-    {
-      construct_at(std::addressof(*current), std::move(*first));
-    }
-  }
-  catch(...)
-  {
-    destroy(d_first, current);
-    throw;
-  }
-  return current;
+  return std::uninitialized_copy(std::make_move_iterator(first), std::make_move_iterator(last), d_first);
 }
 
 template<typename InputIt, typename ForwardIt>
