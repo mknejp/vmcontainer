@@ -5,8 +5,10 @@
 //
 
 #pragma once
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <iterator>
 #include <type_traits>
 #include <utility>
 
