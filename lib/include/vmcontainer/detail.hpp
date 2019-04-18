@@ -68,7 +68,8 @@ public:
       case unit::pages:
         return _count * page_size;
     }
-    assert(false);
+    // TODO: mark as unreachable
+    // assert(false);
     return std::size_t(0);
   }
 
@@ -116,7 +117,8 @@ public:
       case unit::pages:
         return num_pages(_count);
     }
-    assert(false);
+    // TODO: mark as unreachable
+    // assert(false);
     return num_pages(0);
   }
 
