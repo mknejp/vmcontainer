@@ -2,7 +2,7 @@
 # It declares targets for unit tests and benchmarks.
 # If you only want to use the library consume lib/CMakeLists.txt instead.
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(vmcontainer)
 

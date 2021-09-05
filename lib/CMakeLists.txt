@@ -1,15 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 project(vmcontainer)
 
-add_library(
-  vmcontainer
-
-  include/vmcontainer/detail.hpp
-  include/vmcontainer/pinned_vector.hpp
-  include/vmcontainer/vm.hpp
-  src/vmcontainer/vm.cpp
-)
+file(GLOB_RECURSE vmcontainer-sources CONFIGURE_DEPENDS *.cpp)
+add_library(vmcontainer ${vmcontainer-sources})
 add_library(mknejp::vmcontainer ALIAS vmcontainer)
 
 target_include_directories(vmcontainer PUBLIC include)
