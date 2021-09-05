@@ -17,15 +17,21 @@ jobs:
 
     env:
       PRESET: x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - uses: actions/checkout@v2
+      - name: Checkout vcpkg
+        uses: actions/checkout@v2
         with:
           repository: microsoft/vcpkg
           path: vcpkg
+
+      - name: Setup MSVC Environment
+        if: runner.os == 'Windows'
+        run: |
+          & "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
 
       - name: Configure
         run: cmake --preset $Env:PRESET -B out/build .
