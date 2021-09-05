@@ -15,10 +15,6 @@ jobs:
         std: [14]
         compiler: [cl]
 
-    env:
-      PRESET: x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -30,14 +26,17 @@ jobs:
           path: vcpkg
 
       - name: Configure
-        #shell: cmd
-        run: |
-          #call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
-          cmake --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }} -B out/build -G "Visual Studio 16 2019" .
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+        run: >
+          cmake --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
+                -B out/build
+                -G "Visual Studio 16 2019"
+                .
 
       - name: Build
         run: cmake --build out/build
 
       - name: Test
         working-directory: out/build
-        run: ctest --verbose --output-on-failure
+        run: ctest -C ${{ matrix.config }} --verbose --output-on-failure
