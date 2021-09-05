@@ -29,10 +29,11 @@ jobs:
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         run: >
-          cmake --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
-                -B out/build
-                -G "Visual Studio 16 2019"
-                .
+          cmake
+          --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
+          -B out/build
+          -G "Visual Studio 16 2019"
+          .
 
       - name: Build
         run: cmake --build out/build
