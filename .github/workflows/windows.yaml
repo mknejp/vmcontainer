@@ -1,0 +1,38 @@
+name: windows
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  build:
+    runs-on: ${{matrix.image}}
+    strategy:
+      matrix:
+        image: [windows-2019]
+        config: [debug, release]
+        std: [14]
+        compiler: [cl]
+
+    env:
+      PRESET: x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/checkout@v2
+        with:
+          repository: microsoft/vcpkg
+          path: vcpkg
+
+      - name: Configure
+        run: cmake --preset $Env:PRESET -B out/build .
+
+      - name: Build
+        run: cmake --build out/build
+
+      - name: Test
+        working-directory: out/build
+        run: ctest --verbose --output-on-failure

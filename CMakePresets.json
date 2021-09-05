@@ -12,8 +12,8 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": {
-           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-            "type": "FILEPATH"
+          "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+          "type": "FILEPATH"
         },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
       }
@@ -23,7 +23,21 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
-        }
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "std14",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "14"
+      }
     },
     {
       "name": "windows-base",
@@ -48,12 +62,35 @@
       }
     },
     {
-      "name": "x64-windows-cl-debug",
-      "inherits": ["windows-base", "debug"],
-      "displayName": "Windows x64 Debug",
+      "name": "x64-windows-cl-std14-debug",
+      "inherits": [ "windows-base", "debug", "std14" ],
+      "displayName": "Windows x64 MSVC C++14 Debug",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl"
       }
+    },
+    {
+      "name": "x64-windows-cl-std14-release",
+      "inherits": [ "windows-base", "release", "std14" ],
+      "displayName": "Windows x64 MSVC C++14 Release",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden":  true, 
+      "output": {
+        "verbosity": "verbose"
+      }
+    },
+    {
+      "name": "x64-windows-cl-std14-debug",
+      "inherits": [ "base" ],
+      "displayName": "Windows x64 Debug",
+      "configurePreset": "x64-windows-cl-std14-debug"
     }
   ]
 }
