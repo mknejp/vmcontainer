@@ -7,13 +7,14 @@ defaults:
 
 jobs:
   build:
-    runs-on: ${{matrix.image}}
+    runs-on: ${{ matrix.image }}
     strategy:
       matrix:
+        arch: [x64]
         image: [windows-2019]
-        config: [debug, release]
-        std: [14]
         compiler: [cl]
+        std: [14]
+        config: [debug, release]
 
     steps:
       - name: Checkout
@@ -32,7 +33,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           $vcvarsall = "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat"
-          cmd /c "`"$vcvarsall`" x64 > nul 2>&1 && set" >> $Env:GITHUB_ENV
+          cmd /c "`"$vcvarsall`" ${{ matrix.arch }} > nul 2>&1 && set" >> $Env:GITHUB_ENV
           exit $LASTEXITCODE
 
       - name: Configure
@@ -40,7 +41,7 @@ jobs:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         run: >
           cmake
-          --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
+          --preset ${{ matrix.arch }}-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
           -B out/build
           .
 
