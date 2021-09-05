@@ -29,6 +29,9 @@ jobs:
           repository: microsoft/vcpkg
           path: vcpkg
 
+      - name: Install ninja
+        run: choco install ninja -y
+
       - name: Configure
         run: |
           & "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
