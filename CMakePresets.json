@@ -77,20 +77,5 @@
         "CMAKE_CXX_COMPILER": "cl"
       }
     }
-  ],
-  "testPresets": [
-    {
-      "name": "base",
-      "hidden":  true, 
-      "output": {
-        "verbosity": "verbose"
-      }
-    },
-    {
-      "name": "x64-windows-cl-std14-debug",
-      "inherits": [ "base" ],
-      "displayName": "Windows x64 Debug",
-      "configurePreset": "x64-windows-cl-std14-debug"
-    }
   ]
 }
