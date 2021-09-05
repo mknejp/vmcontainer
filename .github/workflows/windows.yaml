@@ -25,6 +25,16 @@ jobs:
           repository: microsoft/vcpkg
           path: vcpkg
 
+      - name: Install ninja
+        run: choco install ninja -y
+
+      - name: Setup MSVC Environment
+        if: runner.os == 'Windows'
+        run: |
+          $vcvarsall = "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat"
+          cmd /c "`"$$vcvarsall`" x64 > nul 2>&1 && set" >> $GITHUB_ENV
+          exit $LASTEXITCODE
+
       - name: Configure
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
@@ -32,12 +42,11 @@ jobs:
           cmake
           --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
           -B out/build
-          -G "Visual Studio 16 2019"
           .
 
       - name: Build
-        run: cmake --build out/build --config ${{ matrix.config }}
+        run: cmake --build out/build
 
       - name: Test
         working-directory: out/build
-        run: ctest -C ${{ matrix.config }} --verbose --output-on-failure
+        run: ctest --verbose --output-on-failure
