@@ -29,14 +29,11 @@ jobs:
           repository: microsoft/vcpkg
           path: vcpkg
 
-      - name: Install ninja
-        run: choco install ninja -y
-
       - name: Configure
-        shell: cmd
+        #shell: cmd
         run: |
-          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
-          cmake --preset %PRESET% -B out/build .
+          #call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
+          cmake --preset x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }} -B out/build -G "Visual Studio 16 2019" .
 
       - name: Build
         run: cmake --build out/build
