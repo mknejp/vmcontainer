@@ -1,0 +1,8 @@
+{
+  "name": "vmcontainer",
+  "version-string": "alpha",
+  "dependencies": [
+    "benchmark",
+    "catch2"
+  ]
+}
