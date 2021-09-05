@@ -33,7 +33,7 @@ jobs:
         run: |
           $vcvarsall = "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat"
           cmd /c "`"$vcvarsall`" x64 > nul 2>&1 && set" >> $GITHUB_ENV
-          cat $GITHUB_ENV
+          Get-Content -Raw $GITHUB_ENV
           exit $LASTEXITCODE
 
       - name: Configure
