@@ -29,13 +29,10 @@ jobs:
           repository: microsoft/vcpkg
           path: vcpkg
 
-      - name: Setup MSVC Environment
-        if: runner.os == 'Windows'
+      - name: Configure
         run: |
           & "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvarsall.bat" x64
-
-      - name: Configure
-        run: cmake --preset $Env:PRESET -B out/build .
+          cmake --preset $Env:PRESET -B out/build .
 
       - name: Build
         run: cmake --build out/build
