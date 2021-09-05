@@ -17,6 +17,7 @@ jobs:
 
     env:
       PRESET: x64-windows-${{ matrix.compiler }}-std${{ matrix.std }}-${{ matrix.config }}
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
     steps:
       - name: Checkout
