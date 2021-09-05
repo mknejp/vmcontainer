@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 5
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": {
+           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+            "type": "FILEPATH"
+        },
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+        }
+    },
+    {
+      "name": "windows-base",
+      "inherits": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Windows" ]
+        }
+      }
+    },
+    {
+      "name": "x64-windows-cl-debug",
+      "inherits": ["windows-base", "debug"],
+      "displayName": "Windows x64 Debug",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    }
+  ]
+}
