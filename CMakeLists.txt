@@ -4,11 +4,11 @@
 
 cmake_minimum_required(VERSION 3.12)
 
-project(vmcontainer)
+project(vmcontainer CXX)
 
 enable_testing()
 
-# For CMAKE_INSTALL_INCLUDEDIR and CMAKE_INSTALL_DATADIR
+# For CMAKE_INSTALL_<LIBDIR, INLCUDEDIR, BINDIR, DATADIR>
 include(GNUInstallDirs)
 
 add_subdirectory(lib)
