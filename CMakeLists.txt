@@ -7,9 +7,9 @@ cmake_minimum_required(VERSION 3.12)
 
 # TODO: To replace by PROJECT_IS_TOP_LEVEL when requiring CMake 3.21
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    set(VMCONTAINER_STANDALONE ON)
+  set(VMCONTAINER_STANDALONE ON)
 else()
-    set(VMCONTAINER_STANDALONE OFF)
+  set(VMCONTAINER_STANDALONE OFF)
 endif()
 
 project(vmcontainer CXX)
@@ -20,10 +20,10 @@ option(VMCONTAINER_BUILD_BENCHMARKS "Enable the vmcontainer benchmark suite" ${V
 add_subdirectory(lib)
 
 if(VMCONTAINER_BUILD_BENCHMARKS)
-    add_subdirectory(benchmarks)
+  add_subdirectory(benchmarks)
 endif()
 
 if(VMCONTAINER_BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
+  enable_testing()
+  add_subdirectory(tests)
 endif()
