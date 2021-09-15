@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.12)
+
+project(vmcontainer CXX)
+
 file(GLOB_RECURSE vmcontainer-sources CONFIGURE_DEPENDS *.cpp)
 add_library(vmcontainer ${vmcontainer-sources})
 add_library(vmcontainer::vmcontainer ALIAS vmcontainer)
@@ -25,10 +29,11 @@ install(TARGETS vmcontainer
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+# Since there is two projects, we need to export into the parent directory
 export(
   TARGETS vmcontainer
   NAMESPACE vmcontainer::
-  FILE "${PROJECT_BINARY_DIR}/vmcontainer-config.cmake"
+  FILE "${PROJECT_BINARY_DIR}/../vmcontainer-config.cmake"
 )
 
 install(EXPORT vmcontainer-config
