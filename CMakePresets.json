@@ -15,7 +15,8 @@
           "value": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
           "type": "FILEPATH"
         },
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "VMCONTAINER_DEV_MODE": true
       }
     },
     {
@@ -62,6 +63,15 @@
       }
     },
     {
+      "name": "linux-base",
+      "inherits": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
+      }
+    },
+    {
       "name": "x64-windows-cl-std14-debug",
       "inherits": [ "windows-base", "debug", "std14" ],
       "displayName": "Windows x64 MSVC C++14 Debug",
@@ -76,6 +86,11 @@
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl"
       }
+    },
+    {
+      "name": "linux-debug",
+      "inherits": [ "linux-base", "debug", "std14" ],
+      "displayName": "Linux x64 C++14 Debug"
     }
   ]
 }
