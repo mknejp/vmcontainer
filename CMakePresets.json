@@ -16,7 +16,7 @@
           "type": "FILEPATH"
         },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-        "VMCONTAINER_DEV_MODE": true
+        "VMCONTAINER_DEV_MODE": "ON"
       }
     },
     {
