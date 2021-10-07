@@ -11,7 +11,7 @@ add_library(vmcontainer.bench.dependencies INTERFACE)
 target_link_libraries(
   vmcontainer.bench.dependencies
   INTERFACE
-  vmcontainer
+  vmcontainer::vmcontainer
   benchmark::benchmark
   benchmark::benchmark_main
 )
